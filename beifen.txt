@@ -1,0 +1,64 @@
+setwd("d:/MyR/jijin")
+
+op <- par(mfcol = c(1,2))
+A <- read.csv(file = "simujijin2015-9-5.csv", header = TRUE)
+A_return <- as.numeric(as.character(A[,2]))
+A_return <- A_return[!is.na(A_return)]
+
+plot(A_return, type = "n", ylim = c(0, 0.02),xlim = c(-180, 375), axes = FALSE,
+     main = '私募基金收益分布密度曲线(截止到2015-9-5)',xlab = '私募基金年收益率(%)',ylab = '分布密度')
+
+x_break_number <- c(min(A_return), seq(from = -20, to = 100, by = 10),200,max(A_return))
+axis(1, at = x_break_number, labels = x_break_number)
+
+
+axis(2, las = 1)
+
+density_mean_sd <- function(x, lwd, lty, lcol, zhao){
+  r <- density(x)
+  lines(r, col = lcol, lwd = lwd, lty = 1)
+  
+  x_mean <- mean(x)
+  (x_sd <- x_mean - sd(x))
+  (x_2sd <- x_mean - 2 * sd(x))
+  (x_median <- median(x))
+  
+  (seq1 <- length(r$x[r$x < x_mean]) + 1)
+  (seq2 <- length(r$x[r$x < x_sd]) + 1)
+
+  (seq3 <- length(r$x[r$x < x_median]) + 1)
+  (seq4 <- length(r$x[r$x < zhao]) + 1)
+  
+  lines(c(x_mean, x_mean), c(0, r$y[seq1]), col = 'red', lwd = 1, lty = lty)
+  text(x_mean,r$y[seq1],labels = paste('mean = ', format(x_mean, digits = 4), '%', sep = ''),
+       pos = 4, font = 3, cex = 0.8,col = 'red')
+  
+  lines(c(x_sd, x_sd), c(0, r$y[seq2]), col = 'red', lwd = 1, lty = lty)
+  text(x_sd,r$y[seq2],labels = paste('mean - sd =\n',format(x_sd, digits = 4), '%', sep = ''),
+       pos = 2, font = 3, cex = 0.8,col = 'red')
+  
+  lines(c(x_median, x_median), c(0, r$y[seq3]), col = 'red', lwd = 1, lty = lty)
+  text(x_median,r$y[seq3],labels = paste('median = ',format(x_median, digits = 4), '%', sep = ''),
+       pos = 4, font = 3, cex = 0.8,col = 'red')
+  
+  lines(c(zhao, zhao), c(0, r$y[seq4]), col = 'green', lwd = 1, lty = 6)
+  text(zhao,r$y[seq4],labels = paste('赵基金收益率 =\n',format(zhao, digits = 4), '%', sep = ''),
+       pos = 2, font = 1, cex = 0.7,col = 'green')  
+  
+}
+
+density_mean_sd(x = A_return, lwd = 1, lty = 3, lcol = 'blue', -11.14)
+
+#大盘指数
+setwd("d:/MyR/jijin")
+A <- read.csv(file = "zhishu2015.csv", header = TRUE)
+A_09_11 <- A[,c(1,2,5)]
+
+A_09_11_array <- array(c(A_09_11[,3]), dim = c(1, 4))
+dimnames(A_09_11_array) <- list(c("2015-8-31"),c("上证综指","深证成指","创业板","中小板"))
+bar_x <- barplot(A_09_11_array, beside = TRUE,ylim = c(-10,45), main = "板块指数涨幅(2015-8-31)",
+                 density = 20, col = rainbow(4), las = 1)
+bar_y <- A_09_11[,3]
+text(bar_x, bar_y + sign(bar_y)*2, paste(bar_y, "%"), col = "red", font = 1, cex = 0.8)
+
+par(op)
