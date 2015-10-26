@@ -1,5 +1,5 @@
 #代码目的：用于比较私募排排网提供的基金收益率信息
-#modified on 2015-10-16
+#modified on 2015-10-26
 
 setwd("d:/MyR/jijin")
 
