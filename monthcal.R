@@ -1,10 +1,33 @@
 #代码目的：用于比较私募排排网提供的基金收益率信息(Aug/Sep/Oct)
-#modified on 2016-3-23
+#modified on 2016-3-24
 
 #####     Function Definition Part
 
 #################################################
-##  1.read csv files to get data
+##  1.plan how to place plots according to the input month vector
+func_layout_plot <- function(Varmonth){
+
+        i <- length(Varmonth)
+
+        if(i == 1){
+                layout_plot_matrix <- matrix(c(1,1,1,2,2,),nr = 1, 
+                                             byrow = TRUE)
+        }else if(i == 2) {
+                layout_plot_matrix <- matrix(c(1,1,1,4,4,2,2,2,3,3),nr = 2, 
+                                             byrow = TRUE)
+        }else  {
+                layout_plot_matrix <- matrix(c(1,1,1,5,5,2,2,2,4,4,3,3,3,4,4),
+                                             nr = 3, 
+                                             byrow = TRUE)
+        }
+        
+        layout(layout_plot_matrix)
+}
+
+
+
+#################################################
+##  2.read csv files to get data
 
 InputData <- function(Varyear = 2016, Varmonth = 2) {
          #Varmonth can be a vector of more than one element 
@@ -63,7 +86,7 @@ InputData <- function(Varyear = 2016, Varmonth = 2) {
 }
 
 
-## 2. Draw monthly return curve for the specified month
+## 3. Draw monthly return curve for the specified month
 
 DrawMonthValueCurve <- function(ls_value_input, Varyear = 2016, Varmonth = 2){
   
@@ -111,7 +134,7 @@ DrawMonthValueCurve <- function(ls_value_input, Varyear = 2016, Varmonth = 2){
   
   index_x_rug <- rep(month_return, each = 2)
   index_y_rug <- rep(c(-0.2,0), times = length(month_return))
-  lines(index_x_rug, index_y_rug, col = rgb(1,0,0,0.2))
+  #lines(index_x_rug, index_y_rug, col = rgb(1,0,0,0.2))
   
   
   zhao_value <- ls_value_input[[zhao_month]]
@@ -132,7 +155,7 @@ DrawMonthValueCurve <- function(ls_value_input, Varyear = 2016, Varmonth = 2){
   
 }
 
-##  3.Draw the monthly return density curve
+##  4.Draw the monthly return density curve
 
 density_mean_sd <- function(x, lwd, lty, lcol, zhao, NotzhaoCol, zhaoCol){
         
@@ -143,13 +166,28 @@ density_mean_sd <- function(x, lwd, lty, lcol, zhao, NotzhaoCol, zhaoCol){
         x_mean <- mean(x)
         x_sd <- x_mean + sd(x)
         x_median <- median(x)
+
+        #get the x sequence number used to find the relative y coordinate 
+        # of labels
+        
+        seq_mean <- length(r$x[r$x < x_mean]) + 1
+        seq_sd <- length(r$x[r$x < x_sd]) + 1
+        
+        seq_median <- length(r$x[r$x < x_median]) + 1
+        seq_zhao <- length(r$x[r$x < zhao]) + 1
+        
+
+        ##change the y coordinate of median label if the distance of 
+        ##median label and mean label is too small
+        
+        y_coordinate_median_label <- r$y[seq_median]
+        if (abs(r$y[seq_mean] - r$y[seq_median]) < 0.0012) {
+        
+                y_coordinate_median_label <- y_coordinate_median_label + 0.001
+        }
         
         #prepare labels and relative positions
         mean_label <- paste(' mean = ',format(x_mean, digits = 4), '%',sep = '')
-        if (abs(x_mean - x_median) < 1.2) {
-                
-                mean_label <- paste("\n   ",mean_label, sep = '')
-        }
         
         median_label <- paste('median = ',format(x_median, digits = 4), '%', 
                               sep = '')
@@ -172,39 +210,35 @@ density_mean_sd <- function(x, lwd, lty, lcol, zhao, NotzhaoCol, zhaoCol){
                 sd_coordinate <- x_sd + 1
         }
         
-        #get the x coordinate for label
-        seq1 <- length(r$x[r$x < x_mean]) + 1
-        seq2 <- length(r$x[r$x < x_sd]) + 1
-        
-        seq3 <- length(r$x[r$x < x_median]) + 1
-        seq4 <- length(r$x[r$x < zhao]) + 1
         
         #draw lines and labels
-        lines(c(x_mean, x_mean), c(0, r$y[seq1]), col = NotzhaoCol, lwd = 1, 
+        lines(c(x_mean, x_mean), c(0, r$y[seq_mean]), col = NotzhaoCol, lwd = 1, 
               lty = lty)
-        text(x_mean,r$y[seq1],labels = mean_label,pos = 2, font = 3, 
+        text(x_mean,r$y[seq_mean],labels = mean_label,pos = 2, font = 3, 
              cex = 1,col = NotzhaoCol)
         
-        lines(c(sd_coordinate, sd_coordinate), c(0, r$y[seq2]), col = NotzhaoCol, 
+        lines(c(sd_coordinate, sd_coordinate), c(0, r$y[seq_sd]), col = NotzhaoCol, 
               lwd = 1, lty = lty)
-        text(x_sd,r$y[seq2],
+        text(x_sd,r$y[seq_sd],
              labels = paste('mean + sd = ',format(x_sd, digits = 3), '%',
                             sep = ''),
              pos = 4, font = 3, cex = 1,col = NotzhaoCol)
         
-        lines(c(x_median, x_median), c(0, r$y[seq3]), col = NotzhaoCol, lwd = 1, 
+        lines(c(x_median, x_median), c(0, r$y[seq_median]), col = NotzhaoCol, 
+              lwd = 1, 
               lty = lty)
-        text(x_median,r$y[seq3],labels = median_label,pos = median_pos, 
+        text(x_median,y_coordinate_median_label,labels = median_label,
+             pos = median_pos, 
              font = 3, cex = 1,col = NotzhaoCol)
         
-        lines(c(zhao, zhao), c(0, r$y[seq4]), col = zhaoCol, lwd = 1, lty = 6)
-        text(zhao,r$y[seq4],labels = zhao_label,pos = 4, font = 3, cex = 0.9,
+        lines(c(zhao, zhao), c(0, r$y[seq_zhao]), col = zhaoCol, lwd = 1, lty = 6)
+        text(zhao,r$y[seq_zhao],labels = zhao_label,pos = 4, font = 3, cex = 0.9,
              col = zhaoCol)  
 }
 
 
 #####################################################
-## 4.大盘指数
+## 5.大盘指数
 
 
 DrawBoardIndex <- function(){
@@ -212,15 +246,17 @@ DrawBoardIndex <- function(){
   
   B <- read.csv(file = "zhishu2016.csv", header = TRUE)
   
-  Board_Index_array <- t(array(c(B[,5]), dim = c(4, 2)))
+  month_number <- length(B[,5])/4
+  Board_Index_array <- t(array(c(B[,5]), dim = c(4, month_number)))
   
-  dimnames(Board_Index_array) <- list(c("2016-1-31","2016-2-29"),
+  dimnames(Board_Index_array) <- list(levels(B$date),
                                       c("上证综指","深证成指","创业板",
                                         "港股通精选100指数"))
   
   bar_x <- barplot(Board_Index_array, beside = TRUE,ylim = c(-35,10), 
                    main = "板块指数涨幅(从2016年初开始)", 
-                   ylab = "涨幅(%)", density = c(20,40),#60,80,100),  
+                   ylab = "涨幅(%)", 
+                   density = seq(from = 20, to = 20 * month_number, by = 20),  
                    las = 1,col = "green",
                    legend.text = attr(Board_Index_array, "dimnames")[[1]],
                    args.legend = list(x = 3.5, y = 8, bty = "n", 
@@ -251,7 +287,7 @@ DrawBoardIndex <- function(){
 
 
 
-## 5.月收益率曲线移动轨迹图
+## 6.月收益率曲线移动轨迹图
 
 DrawMonthValueMovingCurve <- function(ls_value_input, Varyear = 2016, Varmonth = 2){
   
@@ -319,29 +355,40 @@ library(RColorBrewer)
 
 setwd("d:/MyR/jijin")
 
-## plan how to place plots
+##Specify the year and month to draw plots
+##Usually only numeric_Specied_Month need to be changed
 
-#layout_plot_matrix <- matrix(c(1,1,1,5,5,2,2,2,4,4,3,3,3,4,4),nr = 3, 
-#                             byrow = TRUE)
+numeric_Specied_Year <- 2016
+numeric_Specied_Month <- 2:3  ## change only here every time!
 
-layout_plot_matrix <- matrix(c(1,1,1,4,4,2,2,2,3,3),nr = 2, 
-                             byrow = TRUE)
-layout(layout_plot_matrix)
+##plan how to place plots according to the input month vector
+func_layout_plot(numeric_Specied_Month) 
 
 ##read csv files to get data. The input months length can be larger than 3
-
-ls_value <- InputData(2016,2:3)
+ls_value <- InputData(numeric_Specied_Year,numeric_Specied_Month)
 
 
 ##Draw monthly return curves for the recent 3 months
 op <- par(bg = "lightgrey")
-lapply(2:3, DrawMonthValueCurve, ls_value_input = ls_value,Varyear = 2016)
+Curve_related_to_Month <- numeric_Specied_Month
+
+length_Specied_Month <- length(numeric_Specied_Month)
+if(length_Specied_Month > 3){
+        Curve_related_to_Month <- numeric_Specied_Month[
+                (length_Specied_Month - 2):length_Specied_Month]
+                
+}
+
+lapply(Curve_related_to_Month, DrawMonthValueCurve, ls_value_input = ls_value,
+       Varyear = numeric_Specied_Year)
 par(op)
 
-#大盘指数
+#大盘指数: Manual action should not be needed.
 DrawBoardIndex()
 
 
 #月收益率曲线移动轨迹图, The input months length can be larger than 3
-(DrawMonthValueMovingCurve(ls_value, 2016, 2:3))
+DrawMonthValueMovingCurve(ls_value, numeric_Specied_Year, 
+                           numeric_Specied_Month)
+
 
