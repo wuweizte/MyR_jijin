@@ -1,5 +1,5 @@
 #代码目的：用于比较私募排排网提供的基金收益率信息(Aug/Sep/Oct)
-#modified on 2016-3-24
+#modified on 2016-3-25
 
 #####     Function Definition Part
 
@@ -10,7 +10,7 @@ func_layout_plot <- function(Varmonth){
         i <- length(Varmonth)
 
         if(i == 1){
-                layout_plot_matrix <- matrix(c(1,1,1,2,2,),nr = 1, 
+                layout_plot_matrix <- matrix(c(1,1,1,2,2),nr = 1, 
                                              byrow = TRUE)
         }else if(i == 2) {
                 layout_plot_matrix <- matrix(c(1,1,1,4,4,2,2,2,3,3),nr = 2, 
@@ -38,7 +38,8 @@ InputData <- function(Varyear = 2016, Varmonth = 2) {
                 if(i == 13){
                         CSVname <- paste("simujijin",Varyear + 1,"-1-5.csv")
                 }else{
-                        CSVname <- paste("simujijin",Varyear,"-",i,"-5",".csv", sep = "")
+                        CSVname <- paste("simujijin",Varyear,"-",i,"-5",".csv", 
+                                         sep = "")
                 }
                 
                 CSVData <- read.csv(CSVname)
@@ -50,7 +51,8 @@ InputData <- function(Varyear = 2016, Varmonth = 2) {
                 if(i == 13){
                         month_name <- paste("value-",Varyear + 1,"-1-5")
                 }else{
-                        month_name <- paste("value-",Varyear,"-",i,"-5",sep = "")
+                        month_name <- paste("value-",Varyear,"-",i,"-5",
+                                            sep = "")
                         
                 }
                 
@@ -72,7 +74,8 @@ InputData <- function(Varyear = 2016, Varmonth = 2) {
                 if(i == 13){
                         month_name <- paste("value-",Varyear + 1,"-1-5")
                 }else{
-                        month_name <- paste("value-",Varyear,"-",i,"-5",sep = "")
+                        month_name <- paste("value-",Varyear,"-",i,"-5",
+                                            sep = "")
                 }
                 all_data <- c(all_data, ls_value_data[[month_name]])
         }
@@ -88,74 +91,122 @@ InputData <- function(Varyear = 2016, Varmonth = 2) {
 
 ## 3. Draw monthly return curve for the specified month
 
-DrawMonthValueCurve <- function(ls_value_input, Varyear = 2016, Varmonth = 2){
-  
-  if(Varmonth == 13){
-    MonthValueName <- paste("value-",Varyear + 1,"-1-5",sep = "")
-    PlotMainName <- paste('私募基金收益分布密度曲线(截止到',Varyear+1,'-1-5)',
-                          sep = "")
-    zhao_month <- paste("zhao-",Varyear+1,"-1-5",sep = "")
-  }else{
-    MonthValueName <- paste("value-",Varyear,"-",Varmonth,"-5",sep = "")
-    PlotMainName <- paste('私募基金收益分布密度曲线(截止到',Varyear,'-',Varmonth ,'-5)',
-                          sep = "")
-    zhao_month <- paste("zhao-",Varyear,"-",Varmonth,"-5",sep = "")
-    
-  }
-  
-  month_return <- ls_value_input[[MonthValueName]]
-  
-  
-  min_for_months <- ls_value_input[["min_data"]]
-  max_for_months <- ls_value_input[["max_data"]]
-  
-  
-  plot(month_return, type = "n", ylim = c(0, 0.04),
-       xlim = c(min_for_months, max_for_months), 
-       axes = FALSE,main = PlotMainName,
-       xlab = '私募基金年收益率(%)',ylab = '分布密度')
-  
-  x_break_number <- seq(from = round(min_for_months,digits = -1) - 10,
-                        to = round(max_for_months,digits = -1) + 10, 
-                        by = 10)
-  
-  
-  axis(1, at = x_break_number, labels = x_break_number)
-  axis(2, las = 1)
-  
-  #draw grid lines
-  
-  index_y_grid <- seq(from = 0, to = 0.040, by = 0.01)
-  abline(h = index_y_grid, v = x_break_number, col = "white", 
-         lty = "solid",lwd = par("lwd"))
-  
-  #draw rug lines
-  #(rug function can't be used for making lines transparent effect)
-  
-  index_x_rug <- rep(month_return, each = 2)
-  index_y_rug <- rep(c(-0.2,0), times = length(month_return))
-  #lines(index_x_rug, index_y_rug, col = rgb(1,0,0,0.2))
-  
-  
-  zhao_value <- ls_value_input[[zhao_month]]
-  
-  #let colors of density curves in monthly plot to be same as those in
-  # moving curve
-  
-  month_range <- ls_value_input[["month_range"]]
-  col_for_lines <- brewer.pal(length(month_range), "Set1") 
-  
-  col_seq <- seq_along(month_range)
-  names(col_seq) <- month_range
-  
-  SelectedColor <- col_for_lines[col_seq[as.character(Varmonth)]]
-  
-  density_mean_sd(x = month_return, lwd = 1, lty = 5, lcol = SelectedColor, 
-                  zhao_value, "brown", "black")        
-  
+## 3-1 Execution Control Funciton
+func_draw_all_month_curve <- function(ls_value_input,numeric_Specied_Month,
+                                      Varyear,
+                                      numeric_input_ylim_upper = 0.04){
+        ##let user to determine whether rug lines should be drawn.
+        cat("If you want to draw rug lines in x coordinate axis,please input yes.")
+        
+        Draw_Rug_ANSWER <- 
+                readline("Now wait for your input : ")
+        
+        Input_Var_rug_flag = 0
+        if (substr(Draw_Rug_ANSWER, 1, 3) == "yes"){
+                Input_Var_rug_flag = 1
+        }
+        
+        ##Draw monthly return curves for the recent 3 months
+        op <- par(bg = "lightgrey")
+        Curve_related_to_Month <- numeric_Specied_Month
+        
+        length_Specied_Month <- length(numeric_Specied_Month)
+        if(length_Specied_Month > 3){
+                Curve_related_to_Month <- numeric_Specied_Month[
+                        (length_Specied_Month - 2):length_Specied_Month]
+                
+        }
+        
+        lapply(Curve_related_to_Month, DrawMonthValueCurve, 
+               ls_value_input = ls_value,
+               Varyear = numeric_Specied_Year, 
+               Var_rug_flag = Input_Var_rug_flag,
+               numeric_input_ylim_upper)
+        
 }
 
-##  4.Draw the monthly return density curve
+
+## 3-2 Prepare to draw monthly return curve
+#     Var_rug_flag : flag variabel used to determine whether rug lines should
+#                    be drawn.
+
+DrawMonthValueCurve <- function(ls_value_input, Varyear = 2016, Varmonth = 2,
+                                Var_rug_flag = 0,
+                                numeric_input_ylim_upper){
+        
+        
+        if(Varmonth == 13){
+                MonthValueName <- paste("value-",Varyear + 1,"-1-5",sep = "")
+                PlotMainName <- paste('私募基金收益分布密度曲线(截止到',
+                                      Varyear+1,'-1-5)',
+                                      sep = "")
+                zhao_month <- paste("zhao-",Varyear+1,"-1-5",sep = "")
+        }else{
+                MonthValueName <- paste("value-",Varyear,"-",Varmonth,"-5",
+                                        sep = "")
+                PlotMainName <- paste('私募基金收益分布密度曲线(截止到',
+                                      Varyear,'-',Varmonth ,'-5)',
+                                      sep = "")
+                zhao_month <- paste("zhao-",Varyear,"-",Varmonth,"-5",sep = "")
+                
+        }
+        
+        month_return <- ls_value_input[[MonthValueName]]
+        
+        
+        min_for_months <- ls_value_input[["min_data"]]
+        max_for_months <- ls_value_input[["max_data"]]
+        
+        
+        plot(month_return, type = "n", ylim = c(0, numeric_input_ylim_upper),
+             xlim = c(min_for_months, max_for_months), 
+             axes = FALSE,main = PlotMainName,
+             xlab = '私募基金年收益率(%)',ylab = '分布密度')
+        
+        x_break_number <- seq(from = round(min_for_months,digits = -1) - 10,
+                              to = round(max_for_months,digits = -1) + 10, 
+                              by = 10)
+        
+        
+        axis(1, at = x_break_number, labels = x_break_number)
+        axis(2, las = 1)
+        
+        #draw grid lines
+        
+        index_y_grid <- seq(from = 0, to = numeric_input_ylim_upper, by = 0.01)
+        abline(h = index_y_grid, v = x_break_number, col = "white", 
+               lty = "solid",lwd = par("lwd"))
+        
+        #draw rug lines
+        #(rug function can't be used for making lines transparent effect)
+        
+        index_x_rug <- rep(month_return, each = 2)
+        index_y_rug <- rep(c(-0.2,0), times = length(month_return))
+        
+        if (Var_rug_flag == 1){
+                lines(index_x_rug, index_y_rug, col = rgb(1,0,0,0.1))
+        }
+        
+        
+        zhao_value <- ls_value_input[[zhao_month]]
+        
+        #let colors of density curves in monthly plot to be same as those in
+        # moving curve
+        
+        month_range <- ls_value_input[["month_range"]]
+        col_for_lines <- brewer.pal(length(month_range), "Set1") 
+        
+        col_seq <- seq_along(month_range)
+        names(col_seq) <- month_range
+        
+        SelectedColor <- col_for_lines[col_seq[as.character(Varmonth)]]
+        
+        density_mean_sd(x = month_return, lwd = 1, lty = 5, lcol = SelectedColor, 
+                        zhao_value, "brown", "black")        
+        
+}
+
+##  3-3 Draw the monthly return density curve
 
 density_mean_sd <- function(x, lwd, lty, lcol, zhao, NotzhaoCol, zhaoCol){
         
@@ -217,7 +268,8 @@ density_mean_sd <- function(x, lwd, lty, lcol, zhao, NotzhaoCol, zhaoCol){
         text(x_mean,r$y[seq_mean],labels = mean_label,pos = 2, font = 3, 
              cex = 1,col = NotzhaoCol)
         
-        lines(c(sd_coordinate, sd_coordinate), c(0, r$y[seq_sd]), col = NotzhaoCol, 
+        lines(c(sd_coordinate, sd_coordinate), c(0, r$y[seq_sd]), 
+              col = NotzhaoCol, 
               lwd = 1, lty = lty)
         text(x_sd,r$y[seq_sd],
              labels = paste('mean + sd = ',format(x_sd, digits = 3), '%',
@@ -231,14 +283,16 @@ density_mean_sd <- function(x, lwd, lty, lcol, zhao, NotzhaoCol, zhaoCol){
              pos = median_pos, 
              font = 3, cex = 1,col = NotzhaoCol)
         
-        lines(c(zhao, zhao), c(0, r$y[seq_zhao]), col = zhaoCol, lwd = 1, lty = 6)
-        text(zhao,r$y[seq_zhao],labels = zhao_label,pos = 4, font = 3, cex = 0.9,
+        lines(c(zhao, zhao), c(0, r$y[seq_zhao]), col = zhaoCol, lwd = 1, 
+              lty = 6)
+        text(zhao,r$y[seq_zhao],labels = zhao_label,pos = 4, font = 3, 
+             cex = 0.9,
              col = zhaoCol)  
 }
 
 
 #####################################################
-## 5.大盘指数
+## 4.大盘指数
 
 
 DrawBoardIndex <- function(){
@@ -249,7 +303,8 @@ DrawBoardIndex <- function(){
   month_number <- length(B[,5])/4
   Board_Index_array <- t(array(c(B[,5]), dim = c(4, month_number)))
   
-  dimnames(Board_Index_array) <- list(levels(B$date),
+  levels(B$date)
+  dimnames(Board_Index_array) <- list(unique(B$date),
                                       c("上证综指","深证成指","创业板",
                                         "港股通精选100指数"))
   
@@ -287,16 +342,21 @@ DrawBoardIndex <- function(){
 
 
 
-## 6.月收益率曲线移动轨迹图
+## 5.月收益率曲线移动轨迹图
 
-DrawMonthValueMovingCurve <- function(ls_value_input, Varyear = 2016, Varmonth = 2){
+DrawMonthValueMovingCurve <- function(ls_value_input, Varyear = 2016, 
+                                      Varmonth = 2,
+                                      numeric_input_ylim_upper = 0.04,
+                                      numeric_Specied_xlim_down = -50,
+                                      numeric_Specied_xlim_upper = 20){
   
   lid <- length(Varmonth)
   
   if(max(Varmonth) == 13){
     MonthValueName <- paste("value-",Varyear + 1,"-1-5",sep = "")
     
-    Text_legend <- c(paste("截止到",Varyear,"-",Varmonth[1:(lid-1)],"-5",sep = ""),
+    Text_legend <- c(paste("截止到",Varyear,"-",Varmonth[1:(lid-1)],"-5",
+                           sep = ""),
                      paste("截止到",Varyear + 1,"-1-5", sep = ""))
     
   }else{
@@ -307,19 +367,20 @@ DrawMonthValueMovingCurve <- function(ls_value_input, Varyear = 2016, Varmonth =
   month_return <- ls_value_input[[MonthValueName]]
   
   
-  plot(month_return, type = "n", ylim = c(0, 0.04),
-       xlim = c(-50, 20), 
+  plot(month_return, type = "n", ylim = c(0, numeric_input_ylim_upper),
+       xlim = c(numeric_Specied_xlim_down, numeric_Specied_xlim_upper), 
        axes = FALSE,main = '私募基金收益分布密度曲线移动轨迹图',
        xlab = '私募基金年收益率(%)',ylab = '分布密度')
   
-  x_break_number <- seq(from = -50, to = 20, by = 5)
+  x_break_number <- seq(from = numeric_Specied_xlim_down, 
+                        to = numeric_Specied_xlim_upper, by = 5)
   
   axis(1, at = x_break_number, labels = x_break_number)
   axis(2, las = 1)
   
   #draw grid lines
   index_x_grid <- x_break_number
-  index_y_grid <- seq(from = 0, to = 0.040, by = 0.01)
+  index_y_grid <- seq(from = 0, to = numeric_input_ylim_upper, by = 0.01)
   abline(h = index_y_grid, v = index_x_grid, col = "white", 
          lty = "solid",lwd = par("lwd"))
   
@@ -355,11 +416,18 @@ library(RColorBrewer)
 
 setwd("d:/MyR/jijin")
 
-##Specify the year and month to draw plots
+##Specify the year and month range to draw plots
 ##Usually only numeric_Specied_Month need to be changed
 
 numeric_Specied_Year <- 2016
-numeric_Specied_Month <- 2:3  ## change only here every time!
+
+##The following only affects all curve figures
+numeric_Specied_Month <- 2:3  ## change here every time!
+numeric_Specied_ylim_upper <- 0.04 ## It may be needed to change here !
+
+##The following only affects the last curve figure
+numeric_Specied_xlim_down <- -50 ## It may be needed to change here !
+numeric_Specied_xlim_upper <- 20 ## It may be needed to change here !
 
 ##plan how to place plots according to the input month vector
 func_layout_plot(numeric_Specied_Month) 
@@ -367,28 +435,28 @@ func_layout_plot(numeric_Specied_Month)
 ##read csv files to get data. The input months length can be larger than 3
 ls_value <- InputData(numeric_Specied_Year,numeric_Specied_Month)
 
-
-##Draw monthly return curves for the recent 3 months
-op <- par(bg = "lightgrey")
-Curve_related_to_Month <- numeric_Specied_Month
-
-length_Specied_Month <- length(numeric_Specied_Month)
-if(length_Specied_Month > 3){
-        Curve_related_to_Month <- numeric_Specied_Month[
-                (length_Specied_Month - 2):length_Specied_Month]
-                
-}
-
-lapply(Curve_related_to_Month, DrawMonthValueCurve, ls_value_input = ls_value,
-       Varyear = numeric_Specied_Year)
-par(op)
-
+## Draw monthly return curve for the specified month
+func_draw_all_month_curve(ls_value_input = ls_value,
+                          numeric_Specied_Month,
+                          Varyear = numeric_Specied_Year,
+                          numeric_input_ylim_upper = 
+                                  numeric_Specied_ylim_upper)
+                                      
 #大盘指数: Manual action should not be needed.
 DrawBoardIndex()
 
 
 #月收益率曲线移动轨迹图, The input months length can be larger than 3
-DrawMonthValueMovingCurve(ls_value, numeric_Specied_Year, 
-                           numeric_Specied_Month)
+##If there is only one month as input, this part need not to be executed.
+length_Specied_Month <- length(numeric_Specied_Month)
+if(length_Specied_Month > 1){
+        DrawMonthValueMovingCurve(ls_value, numeric_Specied_Year, 
+                                  numeric_Specied_Month,
+                                  numeric_input_ylim_upper = 
+                                          numeric_Specied_ylim_upper,
+                                  numeric_Specied_xlim_down,
+                                  numeric_Specied_xlim_upper)        
+}
+
 
 
