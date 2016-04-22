@@ -1,5 +1,5 @@
-#代码目的：用于比较私募排排网提供的基金收益率信息(Aug/Sep/Oct)
-#modified on 2016-3-25
+#代码目的：用于比较私募排排网提供的基金收益率信息
+#modified on 2016-4-17
 
 #####     Function Definition Part
 
@@ -60,12 +60,20 @@ InputData <- function(Varyear = 2016, Varmonth = 2) {
                 
                 if(i == 13){
                         zhao_name<- paste("zhao-",Varyear + 1,"-1-5")
+                        zhanbo_name<- paste("zhanbo-",Varyear + 1,"-1-5")
+                        yunfeng_name<- paste("yunfeng-",Varyear + 1,"-1-5")
                 }else{
                         zhao_name <- paste("zhao-",Varyear,"-",i,"-5",sep = "")
+                        zhanbo_name <- paste("zhanbo-",Varyear,"-",i,"-5",sep = "")
+                        yunfeng_name <- paste("yunfeng-",Varyear,"-",i,"-5",sep = "")
                 }
                 
                 ls_value_data[[zhao_name]] <- as.numeric(as.character(
                         CSVData[CSVData[,1] == "赤子之心价值",2]))
+                ls_value_data[[zhanbo_name]] <- as.numeric(as.character(
+                        CSVData[CSVData[,1] == "展博1期",2]))
+                ls_value_data[[yunfeng_name]] <- as.numeric(as.character(
+                        CSVData[CSVData[,1] == "华润信托昀沣4号集合资金信托计划",2]))
         }
         
         all_data <- numeric()
@@ -92,14 +100,15 @@ InputData <- function(Varyear = 2016, Varmonth = 2) {
 ## 3. Draw monthly return curve for the specified month
 
 ## 3-1 Execution Control Funciton
-func_draw_all_month_curve <- function(ls_value_input,numeric_Specied_Month,
+func_draw_all_month_curve <- function(arg_ls_value,numeric_Specied_Month,
                                       Varyear,
                                       numeric_input_ylim_upper = 0.04){
         ##let user to determine whether rug lines should be drawn.
-        cat("If you want to draw rug lines in x coordinate axis,please input yes.")
+        cat("\n\nIf you want to draw rug lines in x coordinate axis,please input yes.")
+        cat("\nNow wait for your input: ")
         
         Draw_Rug_ANSWER <- 
-                readline("Now wait for your input : ")
+                readline("?")
         
         Input_Var_rug_flag = 0
         if (substr(Draw_Rug_ANSWER, 1, 3) == "yes"){
@@ -118,7 +127,7 @@ func_draw_all_month_curve <- function(ls_value_input,numeric_Specied_Month,
         }
         
         lapply(Curve_related_to_Month, DrawMonthValueCurve, 
-               ls_value_input = ls_value,
+               ls_value_input = arg_ls_value,
                Varyear = numeric_Specied_Year, 
                Var_rug_flag = Input_Var_rug_flag,
                numeric_input_ylim_upper)
@@ -141,6 +150,7 @@ DrawMonthValueCurve <- function(ls_value_input, Varyear = 2016, Varmonth = 2,
                                       Varyear+1,'-1-5)',
                                       sep = "")
                 zhao_month <- paste("zhao-",Varyear+1,"-1-5",sep = "")
+                zhanbo_month <- paste("zhanbo-",Varyear+1,"-1-5",sep = "")
         }else{
                 MonthValueName <- paste("value-",Varyear,"-",Varmonth,"-5",
                                         sep = "")
@@ -148,7 +158,8 @@ DrawMonthValueCurve <- function(ls_value_input, Varyear = 2016, Varmonth = 2,
                                       Varyear,'-',Varmonth ,'-5)',
                                       sep = "")
                 zhao_month <- paste("zhao-",Varyear,"-",Varmonth,"-5",sep = "")
-                
+                zhanbo_month <- paste("zhanbo-",Varyear,"-",Varmonth,"-5",sep = "")
+                yunfeng_month <- paste("yunfeng-",Varyear,"-",Varmonth,"-5",sep = "")
         }
         
         month_return <- ls_value_input[[MonthValueName]]
@@ -188,7 +199,7 @@ DrawMonthValueCurve <- function(ls_value_input, Varyear = 2016, Varmonth = 2,
         }
         
         
-        zhao_value <- ls_value_input[[zhao_month]]
+        ## Prepare parameters for curve drawing funtion
         
         #let colors of density curves in monthly plot to be same as those in
         # moving curve
@@ -201,14 +212,24 @@ DrawMonthValueCurve <- function(ls_value_input, Varyear = 2016, Varmonth = 2,
         
         SelectedColor <- col_for_lines[col_seq[as.character(Varmonth)]]
         
-        density_mean_sd(x = month_return, lwd = 1, lty = 5, lcol = SelectedColor, 
-                        zhao_value, "brown", "black")        
+        # Profits for specified funds
+        zhao_value <- ls_value_input[[zhao_month]]
+        zhanbo_value <- ls_value_input[[zhanbo_month]]
+        yunfeng_value <- ls_value_input[[yunfeng_month]]
+        
+        # X-Y axis scale  : the length of Y axis is 1/6 of that of X axis
+        
+        XYscale <- ((max_for_months - min_for_months) / 6 ) / numeric_input_ylim_upper
+        
+        ## Call curve drawing funtion
+        density_mean_sd(x = month_return, lwd = 1,  lcol = SelectedColor, 
+                        zhao_value,zhanbo_value,yunfeng_value, XYscale)        
         
 }
 
 ##  3-3 Draw the monthly return density curve
 
-density_mean_sd <- function(x, lwd, lty, lcol, zhao, NotzhaoCol, zhaoCol){
+density_mean_sd <- function(x, lwd, lcol, zhao, zhanbo,yunfeng, arg_XYscale){
         
         #draw density Curve
         r <- density(x)
@@ -226,68 +247,232 @@ density_mean_sd <- function(x, lwd, lty, lcol, zhao, NotzhaoCol, zhaoCol){
         
         seq_median <- length(r$x[r$x < x_median]) + 1
         seq_zhao <- length(r$x[r$x < zhao]) + 1
+        seq_zhanbo <- length(r$x[r$x < zhanbo]) + 1
+        seq_yunfeng <- length(r$x[r$x < yunfeng]) + 1
         
 
-        ##change the y coordinate of median label if the distance of 
-        ##median label and mean label is too small
+        ## Prepare data frame for line drawing and text labelling        
+        DF_lineText <- data.frame(linename = c("mean","sd","mean + sd", "median",
+                                               "zhao","zhanbo","yunfeng"),
+                                  linex = c(mean(x),sd(x),mean(x) + sd(x), median(x), 
+                                            zhao, zhanbo,yunfeng),
+                                  liney = c(r$y[seq_mean],0,r$y[seq_sd],r$y[seq_median],
+                                            r$y[seq_zhao],r$y[seq_zhanbo],r$y[seq_yunfeng]),
+                                  stringsAsFactors = FALSE
+                                  )
+        ## Process figure setting
+        DF_processed <- func_process_line_text(DF_lineText)
+        DF_processed <- func_modify_text_position(DF_processed, arg_XYscale)
         
-        y_coordinate_median_label <- r$y[seq_median]
-        if (abs(r$y[seq_mean] - r$y[seq_median]) < 0.0012) {
+        ## Line drawing and text labelling        
+        func_draw_line_text(DF_processed)
+
+        ## The following browser command is used to decide the threshold set in 
+        ## func_modify_text_position function through going to debug mode
+        ##  to check the dist column of DF_processed
         
-                y_coordinate_median_label <- y_coordinate_median_label + 0.001
-        }
+        #browser()
+
+
+}
+
+## 3-4 Input data frame with figure information about line and text
+func_process_line_text <- function(arg_DF_lineText){
+        DF_result <- as.data.frame(arg_DF_lineText)
         
-        #prepare labels and relative positions
-        mean_label <- paste(' mean = ',format(x_mean, digits = 4), '%',sep = '')
+        DF_result$drawy <- DF_result$liney
         
-        median_label <- paste('median = ',format(x_median, digits = 4), '%', 
-                              sep = '')
-        median_pos <- 4
-        if (abs(x_mean - x_median) < 3.5) {
-                median_pos <- 2
-        } 
+        DF_result$col = "brown"
+        DF_result[DF_result$linename == "zhao","col"] <- "black"
+        DF_result[DF_result$linename == "zhanbo","col"] <- "darkgreen"
+        DF_result[DF_result$linename == "yunfeng","col"] <- "blue"
         
-        zhao_label <- paste('赵基金收益率 = ',format(zhao, digits = 4), '%', 
+        ##lty
+        DF_result$lty <- 5
+        DF_result[DF_result$linename == "zhao","lty"] <- 6
+        
+        ##textcex
+        DF_result$textcex <- 1
+        DF_result[DF_result$linename == "zhao","textcex"] <- 0.9
+        DF_result[DF_result$linename == "zhanbo","textcex"] <- 0.9
+        DF_result[DF_result$linename == "yunfeng","textcex"] <- 0.9
+        
+        ##textpos
+        DF_result$textpos <- 4
+        DF_result[DF_result$linename == "median","textpos"] <- 3
+        
+        linex_median <- DF_result[DF_result$linename == "median","linex"]
+        DF_result$textpos <- ifelse(DF_result$linex < linex_median,  2, 
+                                    DF_result$textpos )
+
+        ##textlabel
+        DF_result$textlabel <- ""
+
+        DF_result[DF_result$linename == "median","textlabel"] <- 
+                paste('median = ',round(linex_median, digits = 2), '%', sep = '')
+
+        linex_zhao <- DF_result[DF_result$linename == "zhao","linex"]
+        DF_result[DF_result$linename == "zhao","textlabel"] <-
+                paste('赵基金收益率 = ',format(linex_zhao, digits = 4), '%', 
                             sep = '') 
         
-        #   if (abs(x_sd - zhao) < 1.5) {
-        #           zhao_label <- paste("\n\n",zhao_label, sep = '')
-        #   }  else if (abs(x_sd - zhao) < 3) {
-        #           zhao_label <- paste("\n",zhao_label, sep = '')
-        #   } 
+        linex_zhanbo <- DF_result[DF_result$linename == "zhanbo","linex"]
+        DF_result[DF_result$linename == "zhanbo","textlabel"] <-
+                paste('展博1期基金收益率 = ',format(linex_zhanbo, digits = 4), '%', 
+                      sep = '') 
         
-        sd_coordinate <- x_sd
-        if ((abs(x_sd - zhao) < 0.15) & (x_sd > zhao)) {
-                sd_coordinate <- x_sd + 1
+        linex_yunfeng <- DF_result[DF_result$linename == "yunfeng","linex"]
+        DF_result[DF_result$linename == "yunfeng","textlabel"] <-
+                paste('昀沣4号基金收益率 = ',format(linex_yunfeng, digits = 4), '%', 
+                      sep = '') 
+        
+        linex_mean <- DF_result[DF_result$linename == "mean","linex"]
+        linex_sd <- DF_result[DF_result$linename == "sd","linex"]
+        linex_meansd <- DF_result[DF_result$linename == "mean + sd","linex"]
+        
+        DF_result[DF_result$linename == "mean + sd","textlabel"] <-
+                paste('mean + sd = ',round(linex_mean, digits = 2), '%',
+                      ' + ', round(linex_sd, digits = 2), '%',
+                      ' ~~ ', round(linex_meansd, digits = 2), '%',
+                      sep = '')
+
+                
+        #delete mean and sd value from data frame and return it
+        
+        tbl_df_result <- tbl_df(DF_result)
+        tbl_df_filtered <- filter(tbl_df_result, linename != "mean" , 
+                                  linename != "sd")
+
+        return(tbl_df_filtered)
+}
+
+## 3-5 Modify text position in the density curve
+func_modify_text_position <- function(arg_DF_processed_first, arg_XYscale){
+       tbl_df_text_position <- tbl_df(arg_DF_processed_first)
+       tbl_df_text_position <- arrange(tbl_df_text_position, linex)
+       
+       linex_median <- unlist(tbl_df_text_position %>% filter(linename == "median")
+                                                   %>% select(linex))
+       
+       tbl_df_filter_left <- filter(tbl_df_text_position, linex <= linex_median)
+       tbl_df_filter_right <- filter(tbl_df_text_position, linex >= linex_median)
+       
+       df_filter_left <- as.data.frame(tbl_df_filter_left %>% select(linex, liney))
+       if(nrow(tbl_df_filter_left) > 1){
+
+               df_filter_left_combine <- cbind(df_filter_left[-1,], 
+                                               df_filter_left[-nrow(df_filter_left),])
+               colnames(df_filter_left_combine) <- c("linex1", "liney1", 
+                                                     "linex2", "liney2")
+               
+               ## the distance between 2 adjacent points is calculated through the 
+               ## sum of subtract results of X coordinates and Y coordinates,
+               ## but that of Y coordinates is needed to multiply with one scale
+               ## because the scales of X axis and Y axis are different
+               
+               x1 <- df_filter_left_combine$linex1
+               x2 <- df_filter_left_combine$linex2
+               y1 <- df_filter_left_combine$liney1
+               y2 <- df_filter_left_combine$liney2
+               
+               df_filter_left_combine$distance <- 
+                       abs(x1- x2) + abs(y1- y2) * arg_XYscale
+        
+               rm(x1,x2,y1,y2)                         
+
+               df_filter_left$distance <- c(Inf, df_filter_left_combine$distance)
+       }else{
+               df_filter_left$distance <- Inf
+       }
+
+       df_filter_right <- as.data.frame(tbl_df_filter_right %>% select(linex, liney))       
+       if(nrow(tbl_df_filter_right) > 1){
+               
+               df_filter_right_combine <- cbind(df_filter_right[-nrow(df_filter_right),], 
+                                                df_filter_right[-1,])
+               colnames(df_filter_right_combine) <- c("linex1", "liney1", 
+                                                      "linex2", "liney2")
+               
+               x1 <- df_filter_right_combine$linex1
+               x2 <- df_filter_right_combine$linex2
+               y1 <- df_filter_right_combine$liney1
+               y2 <- df_filter_right_combine$liney2
+               
+               
+               df_filter_right_combine$distance <- 
+                       abs(x1- x2) + abs(y1- y2) * arg_XYscale                      
+               
+               rm(x1,x2,y1,y2)                 
+               
+               df_filter_right$distance <- c(df_filter_right_combine$distance,Inf)
+       }else{
+               df_filter_right$distance <- Inf
+       }
+       
+               
+       median_dist <- min(df_filter_left$distance[nrow(df_filter_left)],
+                                  df_filter_right$distance[1])
+       
+       tbl_df_text_position$dist <- c(df_filter_left$distance[-nrow(df_filter_left)],
+                                      median_dist,
+                                      df_filter_right$distance[-1]
+                                      )
+       
+       rownum_median <- which(tbl_df_text_position$linename == "median")
+       
+       ## This threshold can be observed through 'browser()' 
+       ## in  density_mean_sd function
+       dist_lowthreshold <- 3
+       
+       for (i in 2:(nrow(tbl_df_text_position) - 1)) {
+               if(tbl_df_text_position$dist[i] < dist_lowthreshold){
+                       tbl_df_text_position$drawy[i:rownum_median] <- 
+                               tbl_df_text_position$drawy[i:rownum_median] + 0.002
+                       
+                       ##There is a cumulative effect on the y axis value of median point.
+                       ##So a negative value is used to lessen this effect
+                       tbl_df_text_position$drawy[rownum_median] <- 
+                               tbl_df_text_position$drawy[rownum_median] - 0.0005
+               } 
+                      
+       }
+
+       return(tbl_df_text_position)
+}
+
+## 3-6 Draw line and text in the density curve
+func_draw_line_text <- function(arg_DF_processed){
+
+        DF_Draw <- as.data.frame(arg_DF_processed)
+        
+        for (i in 1:nrow(DF_Draw)) {
+                
+                linex <- DF_Draw[i,"linex"]
+                liney <- DF_Draw[i,"liney"]
+                texty <- DF_Draw[i,"drawy"]
+                
+                rowcol <- DF_Draw[i,"col"]
+                rowcex <- DF_Draw[i,"textcex"]
+                rowlty <- DF_Draw[i,"lty"]
+                rowpos <- DF_Draw[i,"textpos"]
+                
+                rowlabel <- DF_Draw[i,"textlabel"]
+                
+                ## Use 'approximately equal signal'
+                ## In fact, the result of bquote function has 3 elements !
+                rowlinename <- DF_Draw[i,"linename"]
+                if(rowlinename == "mean + sd"){
+                        textlabel_split <- strsplit(rowlabel, '~~')
+                        rowlabel <- bquote(.(textlabel_split[[1]][1]) 
+                                           %~~% .(textlabel_split[[1]][2]))        
+                }
+                        
+                lines(c(linex, linex), c(0, liney), col = rowcol, lwd = 1, 
+                      lty = rowlty)
+                text(linex,texty,labels = rowlabel,pos = rowpos, font = 3, 
+                     cex = rowcex,
+                     col = rowcol)  
         }
-        
-        
-        #draw lines and labels
-        lines(c(x_mean, x_mean), c(0, r$y[seq_mean]), col = NotzhaoCol, lwd = 1, 
-              lty = lty)
-        text(x_mean,r$y[seq_mean],labels = mean_label,pos = 2, font = 3, 
-             cex = 1,col = NotzhaoCol)
-        
-        lines(c(sd_coordinate, sd_coordinate), c(0, r$y[seq_sd]), 
-              col = NotzhaoCol, 
-              lwd = 1, lty = lty)
-        text(x_sd,r$y[seq_sd],
-             labels = paste('mean + sd = ',format(x_sd, digits = 3), '%',
-                            sep = ''),
-             pos = 4, font = 3, cex = 1,col = NotzhaoCol)
-        
-        lines(c(x_median, x_median), c(0, r$y[seq_median]), col = NotzhaoCol, 
-              lwd = 1, 
-              lty = lty)
-        text(x_median,y_coordinate_median_label,labels = median_label,
-             pos = median_pos, 
-             font = 3, cex = 1,col = NotzhaoCol)
-        
-        lines(c(zhao, zhao), c(0, r$y[seq_zhao]), col = zhaoCol, lwd = 1, 
-              lty = 6)
-        text(zhao,r$y[seq_zhao],labels = zhao_label,pos = 4, font = 3, 
-             cex = 0.9,
-             col = zhaoCol)  
 }
 
 
@@ -322,18 +507,22 @@ DrawBoardIndex <- function(){
   
   location_bar_x = bar_x
   
-  if(FALSE){
-    for(i in 1:(length(bar_y) - 1)){
-      if(abs(bar_y[i] - bar_y[i + 1]) < 0.15){
-        location_bar_x[i] = location_bar_x[i] - 0.4
-        location_bar_x[i + 1] = location_bar_x[i + 1] + 0.6
-      }else if(abs(bar_y[i] - bar_y[i + 1]) < 2){
-        location_bar_x[i] = location_bar_x[i] - 0.6
+  ## the following code chunk is not executed, and may be referred to later 
+  ##if the position of text need to be modified
+  
+  #if(FALSE){
+  #  for(i in 1:(length(bar_y) - 1)){
+  #    if(abs(bar_y[i] - bar_y[i + 1]) < 0.15){
+  #      location_bar_x[i] = location_bar_x[i] - 0.4
+  #      location_bar_x[i + 1] = location_bar_x[i + 1] + 0.6
+  #    }else if(abs(bar_y[i] - bar_y[i + 1]) < 2){
+  #      location_bar_x[i] = location_bar_x[i] - 0.6
         
-      }
-    }
+  #    }
+  #  }
     
-  }
+  #}
+  ##end if
   
   text(location_bar_x, bar_y + sign(bar_y) * 2, paste(bar_y,"%",sep = ""),
        col = "red", font = 3,cex = 0.9)
@@ -413,6 +602,7 @@ DrawMonthValueMovingCurve <- function(ls_value_input, Varyear = 2016,
 
 ######Execution Part
 library(RColorBrewer)
+library(dplyr, warn.conflicts = FALSE)
 
 setwd("d:/MyR/jijin")
 
@@ -422,12 +612,12 @@ setwd("d:/MyR/jijin")
 numeric_Specied_Year <- 2016
 
 ##The following only affects all curve figures
-numeric_Specied_Month <- 2:3  ## change here every time!
-numeric_Specied_ylim_upper <- 0.04 ## It may be needed to change here !
+numeric_Specied_Month <- 2:4  ## change here every time!
+numeric_Specied_ylim_upper <- 0.055 ## It may be needed to change here !
 
 ##The following only affects the last curve figure
 numeric_Specied_xlim_down <- -50 ## It may be needed to change here !
-numeric_Specied_xlim_upper <- 20 ## It may be needed to change here !
+numeric_Specied_xlim_upper <- 30 ## It may be needed to change here !
 
 ##plan how to place plots according to the input month vector
 func_layout_plot(numeric_Specied_Month) 
@@ -436,7 +626,9 @@ func_layout_plot(numeric_Specied_Month)
 ls_value <- InputData(numeric_Specied_Year,numeric_Specied_Month)
 
 ## Draw monthly return curve for the specified month
-func_draw_all_month_curve(ls_value_input = ls_value,
+## the browser() in density_mean_sd function should be enabled
+
+func_draw_all_month_curve(arg_ls_value = ls_value,
                           numeric_Specied_Month,
                           Varyear = numeric_Specied_Year,
                           numeric_input_ylim_upper = 
