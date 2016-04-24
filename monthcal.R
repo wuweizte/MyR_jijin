@@ -272,8 +272,6 @@ density_mean_sd <- function(x, lwd, lcol, zhao, zhanbo,yunfeng, arg_XYscale){
         ##  to check the dist column of DF_processed
         
         #browser()
-
-
 }
 
 ## 3-4 Input data frame with figure information about line and text
@@ -423,16 +421,33 @@ func_modify_text_position <- function(arg_DF_processed_first, arg_XYscale){
        ## This threshold can be observed through 'browser()' 
        ## in  density_mean_sd function
        dist_lowthreshold <- 3
+       LargeStep <- 0.002
+       MiddleStep <- LargeStep * 3/4
+       SmallStep <- LargeStep/4
        
        for (i in 2:(nrow(tbl_df_text_position) - 1)) {
                if(tbl_df_text_position$dist[i] < dist_lowthreshold){
-                       tbl_df_text_position$drawy[i:rownum_median] <- 
-                               tbl_df_text_position$drawy[i:rownum_median] + 0.002
                        
-                       ##There is a cumulative effect on the y axis value of median point.
-                       ##So a negative value is used to lessen this effect
+                       tbl_df_text_position$drawy[i] <- 
+                               tbl_df_text_position$drawy[i] + LargeStep
+                       
+                       if(i == rownum_median){
+                               next
+                       }
+                       
                        tbl_df_text_position$drawy[rownum_median] <- 
-                               tbl_df_text_position$drawy[rownum_median] - 0.0005
+                               tbl_df_text_position$drawy[rownum_median] + SmallStep
+                       
+                       if(i < (rownum_median - 1)){
+                               tbl_df_text_position$drawy[(i + 1):(rownum_median - 1)] <- 
+                                       tbl_df_text_position$drawy[(i + 1):(rownum_median - 1)] + MiddleStep
+                       
+                                       
+                       }else if(i > (rownum_median + 1)){
+                               tbl_df_text_position$drawy[(i - 1):(rownum_median + 1)] <- 
+                                       tbl_df_text_position$drawy[(i - 1):(rownum_median + 1)] + MiddleStep
+                               
+                       }
                } 
                       
        }
