@@ -1,5 +1,5 @@
 #代码目的：用于比较私募排排网提供的基金收益率信息
-#modified on 2016-4-17
+#modified on 2016-5-27
 
 #####     Function Definition Part
 
@@ -16,9 +16,19 @@ func_layout_plot <- function(Varmonth){
                 layout_plot_matrix <- matrix(c(1,1,1,4,4,2,2,2,3,3),nr = 2, 
                                              byrow = TRUE)
         }else  {
-                layout_plot_matrix <- matrix(c(1,1,1,5,5,2,2,2,4,4,3,3,3,4,4),
-                                             nr = 3, 
-                                             byrow = TRUE)
+                if(file.exists("zhaobankuaizhishu2016.csv")){
+                        #如果记录赵基金持仓板块涨幅的文件存在，则要多描绘一个图
+                        layout_plot_matrix <- matrix(c(1,1,1,5,5,2,2,2,4,4,
+                                                       3,3,3,6,6),
+                                                     nr = 3, 
+                                                     byrow = TRUE)                                        
+                }else{
+                        layout_plot_matrix <- matrix(c(1,1,1,5,5,2,2,2,4,4,
+                                                       3,3,3,4,4),
+                                                     nr = 3, 
+                                                     byrow = TRUE)                
+                }
+        
         }
         
         layout(layout_plot_matrix)
@@ -195,7 +205,7 @@ DrawMonthValueCurve <- function(ls_value_input, Varyear = 2016, Varmonth = 2,
         index_y_rug <- rep(c(-0.2,0), times = length(month_return))
         
         if (Var_rug_flag == 1){
-                lines(index_x_rug, index_y_rug, col = rgb(1,0,0,0.1))
+                lines(index_x_rug, index_y_rug, col = "tan2")
         }
         
         
@@ -420,7 +430,7 @@ func_modify_text_position <- function(arg_DF_processed_first, arg_XYscale){
        
        ## This threshold can be observed through 'browser()' 
        ## in  density_mean_sd function
-       dist_lowthreshold <- 3
+       dist_lowthreshold <- 3.4
        LargeStep <- 0.002
        MiddleStep <- LargeStep * 3/4
        SmallStep <- LargeStep/4
@@ -484,38 +494,51 @@ func_draw_line_text <- function(arg_DF_processed){
                         
                 lines(c(linex, linex), c(0, liney), col = rowcol, lwd = 1, 
                       lty = rowlty)
-                text(linex,texty,labels = rowlabel,pos = rowpos, font = 3, 
-                     cex = rowcex,
-                     col = rowcol)  
+                
+                #对于中值，线与文字不再公用x坐标，文字稍微左移               
+                if(rowlinename == "median"){
+                        text(linex - 5,texty,labels = rowlabel,pos = rowpos, 
+                             font = 3, 
+                             cex = rowcex,
+                             col = rowcol)  
+                }else{
+                        text(linex,texty,labels = rowlabel,pos = rowpos, 
+                             font = 3, 
+                             cex = rowcex,
+                             col = rowcol)  
+                }
+                
         }
 }
 
 
 #####################################################
-## 4.大盘指数
+## 4.板块指数描绘函数：用于描绘大盘指数以及赵基金持仓板块
 
-
-DrawBoardIndex <- function(){
+DrawBoardIndex <- function(filename, boardindexname, titlecontent,legendx,
+                           legendy,barcol){
   
   
-  B <- read.csv(file = "zhishu2016.csv", header = TRUE)
+  B <- read.csv(file = filename, header = TRUE)
   
-  month_number <- length(B[,5])/4
-  Board_Index_array <- t(array(c(B[,5]), dim = c(4, month_number)))
+  month_number <- length(B[,5])/3
+  Board_Index_array <- t(array(c(B[,5]), dim = c(3, month_number)))
   
   levels(B$date)
-  dimnames(Board_Index_array) <- list(unique(B$date),
-                                      c("上证综指","深证成指","创业板",
-                                        "港股通精选100指数"))
+  dimnames(Board_Index_array) <- list(unique(B$date), boardindexname)
+                                      
   
-  bar_x <- barplot(Board_Index_array, beside = TRUE,ylim = c(-35,10), 
-                   main = "板块指数涨幅(从2016年初开始)", 
+  bar_x <- barplot(Board_Index_array, beside = TRUE,ylim = c(-35,0), 
+                   main = titlecontent, 
                    ylab = "涨幅(%)", 
                    density = seq(from = 20, to = 20 * month_number, by = 20),  
-                   las = 1,col = "green",
+                   las = 1,col = barcol,
                    legend.text = attr(Board_Index_array, "dimnames")[[1]],
-                   args.legend = list(x = 3.5, y = 8, bty = "n", 
-                                      text.width = strwidth("100000")))
+                   args.legend = list(x = legendx, 
+                                      y = legendy, 
+                                      bty = "n",
+                                      ncol = (month_number %/% 3) + 1,  ##defind column counts of legend
+                                      text.width = strwidth("10000")))
   
   
   bar_y <- as.numeric(Board_Index_array)
@@ -610,8 +633,8 @@ DrawMonthValueMovingCurve <- function(ls_value_input, Varyear = 2016,
   lwd_legend <- c(rep(1,(lid - 1)), 2)
   
   
-  legend("topright", col = col_for_lines,lty = 1, lwd = lwd_legend,
-         legend = Text_legend,text.width = strwidth("100000000"),
+  legend("topleft", col = col_for_lines,lty = 1, lwd = lwd_legend,
+         legend = Text_legend,text.width = strwidth("100000"),
          bty = "n")           
 }
 
@@ -627,7 +650,7 @@ setwd("d:/MyR/jijin")
 numeric_Specied_Year <- 2016
 
 ##The following only affects all curve figures
-numeric_Specied_Month <- 2:4  ## change here every time!
+numeric_Specied_Month <- 2:5  ## change here every time!
 numeric_Specied_ylim_upper <- 0.055 ## It may be needed to change here !
 
 ##The following only affects the last curve figure
@@ -641,7 +664,8 @@ func_layout_plot(numeric_Specied_Month)
 ls_value <- InputData(numeric_Specied_Year,numeric_Specied_Month)
 
 ## Draw monthly return curve for the specified month
-## the browser() in density_mean_sd function should be enabled
+## the browser() in density_mean_sd function should be enabled if text is overlapped
+## debug模式启动后，观察DF_processed数据框，再考虑如何设置距离门限以调整文字间距
 
 func_draw_all_month_curve(arg_ls_value = ls_value,
                           numeric_Specied_Month,
@@ -650,7 +674,9 @@ func_draw_all_month_curve(arg_ls_value = ls_value,
                                   numeric_Specied_ylim_upper)
                                       
 #大盘指数: Manual action should not be needed.
-DrawBoardIndex()
+DrawBoardIndex("dapanzhishu2016.csv",
+               c("上证综指","创业板","港股通精选100指数"), 
+               "大盘涨幅(从2016年初开始)", 16, -25,"khaki4")#"turquoise3"
 
 
 #月收益率曲线移动轨迹图, The input months length can be larger than 3
@@ -666,4 +692,10 @@ if(length_Specied_Month > 1){
 }
 
 
-
+#赵持仓板块指数: Manual action should not be needed.
+if(file.exists("zhaobankuaizhishu2016.csv")){
+        #如果记录赵基金持仓板块涨幅的文件存在，则要多描绘一个图，否则省略
+        DrawBoardIndex("zhaobankuaizhishu2016.csv",
+               c("高端装备指数000097","医药指数399913","消费指数399912"), 
+               "赵基金持仓板块涨幅(从2016年初开始)", 16, -25,"black")
+}
