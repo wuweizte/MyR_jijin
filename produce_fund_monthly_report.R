@@ -68,15 +68,13 @@ GetCSVMonthName <- function(arg.year = 2016, arg.month = 2) {
 
 DeleteDuplicateFundName <- function(arg.fund.name.vector) {
         
-        # 对月份收益数据取交集，确保分析的总体数据在时间上的一致
+        # 删除存在重名的基金
         #
         # Args:
-        #   arg.ls.value: 存放基金月度收益数据的列表
-        #   arg.year: 绘画针对的年份，以单向量形式输入
-        #   arg.month: 绘画针对的月份范围，以向量形式输入
+        #   arg.fund.name.vector: 原始的基金名称的向量组
         #
         # Returns:
-        #   返回最终用于分析的基金名称列表
+        #   删除重名后的基金名称的向量组
         
 
         fund.name.table <- table(arg.fund.name.vector)
@@ -123,110 +121,101 @@ GetFundNameVector <- function(arg.ls.value, arg.year = 2016, arg.month = 2) {
         
 }        
 
-
-
 InputData <- function(arg.year = 2016, arg.month = 2) {
-         #arg.month can be a vector of more than one element 
-         #to input more than one file
-           
-        ls_value_data <- list()
+        # 读取数据文件，选取满足要求的记录存放到全局列表中
+        #
+        # Args:
+        #   arg.year: 绘画针对的年份，以单向量形式输入
+        #   arg.month: 绘画针对的月份范围，以向量形式输入
+        #
+        # Returns:
+        #   返回已经填好数据的列表
+        
+        ls.value.data <- list()
         for(i in arg.month){
                 if(i == 13){
-                        CSVname <- paste("simujijin",arg.year + 1,"-1-5.csv")
+                        csv.file.name <- paste("simujijin",arg.year + 1,"-1-5.csv")
                 }else{
-                        CSVname <- paste("simujijin",arg.year,"-",i,"-5",".csv", 
+                        csv.file.name <- paste("simujijin",arg.year,"-",i,"-5",".csv", 
                                          sep = "")
                 }
                 
-                CSVData <- read.csv(CSVname, stringsAsFactors = FALSE)
-
-                CSVData <- CSVData[CSVData[,2] != "#NA" & 
-                                           CSVData[,2] != "#VALUE!",1:2]
+                csv.file.content <- read.csv(csv.file.name, stringsAsFactors = FALSE)
+                csv.file.content <- csv.file.content[csv.file.content[,2] != "#NA" & 
+                                           csv.file.content[,2] != "#VALUE!",1:2]
                 
-                CSVmonth_name <- GetCSVMonthName(arg.year, i)
-                
-                ls_value_data[[CSVmonth_name]] <- CSVData
-                #browser()
-
+                month.index <- GetCSVMonthName(arg.year, i)
+                ls.value.data[[month.index]] <- csv.file.content
         }
 
-        # CSVmonth_name <- GetCSVMonthName(arg.year, arg.month[1])                       
-        # CSVfundName <- ls_value_data[[CSVmonth_name]][,1]
-        #  
-        # if(length(arg.month) > 1){
-        # 
-        #         for(i in arg.month[-1]){
-        #                 
-        #                 CSVmonth_name <- GetCSVMonthName(arg.year, i)
-        #                 CSVfundName <- intersect(ls_value_data[[CSVmonth_name]][,1], CSVfundName)
-        #         }                
-        # }
 
-        CSVfundName <- GetFundNameVector(ls_value_data, arg.year, arg.month)
+        accepted.fund.name <- GetFundNameVector(ls.value.data, arg.year, arg.month)
         
-        #browser()
-        mindata <- 0
-        maxdata <- 0
+        min.value <- 0
+        max.value <- 0
         for(i in arg.month){
 
-                CSVmonth_name <- GetCSVMonthName(arg.year, i)
+                month.index <- GetCSVMonthName(arg.year, i)
                 
-                fundDF <- ls_value_data[[CSVmonth_name]]
-                fundDF <- fundDF[fundDF[,1] %in% CSVfundName,]
-                ls_value_data[[CSVmonth_name]] <- fundDF
+                fund.data <- ls.value.data[[month.index]]
+                fund.data <- fund.data[fund.data[,1] %in% accepted.fund.name,]
+                ls.value.data[[month.index]] <- fund.data
 
-                mindata <- min(as.numeric(fundDF[,2]),mindata)
-                maxdata <- max(as.numeric(fundDF[,2]),maxdata)
-                #browser()        
+                min.value <- min(as.numeric(fund.data[,2]),min.value)
+                max.value <- max(as.numeric(fund.data[,2]),max.value)
         }
-        #browser()
 
-        ls_value_data[["min_data"]] <- mindata
-        ls_value_data[["max_data"]] <- maxdata
+        ls.value.data[["min_data"]] <- min.value
+        ls.value.data[["max_data"]] <- max.value
         
-        ls_value_data[["month_range"]] <- arg.month
-        #browser()
-        return(ls_value_data)
+        ls.value.data[["month_range"]] <- arg.month
+        return(ls.value.data)
 }
 
 
-## 3. Draw monthly return curve for the specified month
 
-## 3-1 Execution Control Funciton
-func_draw_all_month_curve <- function(arg_ls_value, numeric_Specied_Month,
-                                      arg.year,
-                                      numeric_input_ylim_upper = 0.04){
+## 
+DrawAllMonthCurve <- function(arg.ls.value, arg.year, arg.month,
+                                      arg.ylim.upper = 0.04){
+
+        # 3. Draw monthly return curve for the specified month
+        # 3-1 Execution Control Funciton
+        # 
+        # Args:
+        #   arg.ls.value: 已经填好数据的列表
+        #   arg.year: 绘画针对的年份，以单向量形式输入
+        #   arg.month: 绘画针对的月份范围，以向量形式输入
+        #   arg.ylim.upper: 图中Y轴刻度上限
+        # 
+        # Returns:
+        #   没有返回，结尾是调用子函数
+        
         ##let user to determine whether rug lines should be drawn.
         cat("\n\nIf you want to draw rug lines in x coordinate axis,please input yes.")
         cat("\nNow wait for your input: ")
         
-        Draw_Rug_ANSWER <- 
-                readline("?")
-        
-        Input_Var_rug_flag = 0
-        if (substr(Draw_Rug_ANSWER, 1, 3) == "yes"){
-                Input_Var_rug_flag = 1
+        draw.rug.selection <- readline("?")
+
+        rug.flag = 0
+        if (substr(draw.rug.selection, 1, 3) == "yes"){
+                rug.flag = 1
         }
         
         ##Draw monthly return curves for the recent 3 months
         op <- par(bg = "lightgrey")
-        Curve_related_to_Month <- numeric_Specied_Month
+        month.to.draw <- arg.month
         
-        length_Specied_Month <- length(numeric_Specied_Month)
-        if(length_Specied_Month > 3){
-                Curve_related_to_Month <- numeric_Specied_Month[
-                        (length_Specied_Month - 2):length_Specied_Month]
-                
+        length.specied.month <- length(arg.month)
+        if(length.specied.month > 3){
+                month.to.draw <- arg.month[
+                        (length.specied.month - 2):length.specied.month]
         }
-        
 
-        lapply(Curve_related_to_Month, DrawMonthValueCurve, 
-               numeric_input_ylim_upper = numeric_input_ylim_upper,
-               ls_value_input = arg_ls_value,
+        lapply(month.to.draw, DrawMonthValueCurve, 
+               arg.ylim.upper = arg.ylim.upper,
+               ls_value_input = arg.ls.value,
                arg.year = numeric_Specied_Year, 
-               Var_rug_flag = Input_Var_rug_flag)
-               
-        
+               Var_rug_flag = rug.flag)
 }
 
 
@@ -234,16 +223,16 @@ func_draw_all_month_curve <- function(arg_ls_value, numeric_Specied_Month,
 #     Var_rug_flag : flag variabel used to determine whether rug lines should
 #                    be drawn.
 
-DrawMonthValueCurve <- function(numeric_input_ylim_upper, ls_value_input, 
+DrawMonthValueCurve <- function(arg.ylim.upper, ls_value_input, 
                                 arg.year = 2016, arg.month = 2,
                                 Var_rug_flag = 0){
                                 
         
         if(arg.month == 13){
-                PlotMainName <- paste('私募基金收益分布密度曲线(截止到',
+                PlotMainName <- paste('股票策略型私募基金收益分布密度曲线(截止到',
                                       arg.year+1,'-1-5)',sep = "")
         }else{
-                PlotMainName <- paste('私募基金收益分布密度曲线(截止到',
+                PlotMainName <- paste('股票策略型私募基金收益分布密度曲线(截止到',
                                       arg.year,'-',arg.month ,'-5)',sep = "")
         }
 
@@ -254,10 +243,10 @@ DrawMonthValueCurve <- function(numeric_input_ylim_upper, ls_value_input,
         min_for_months <- ls_value_input[["min_data"]]
         max_for_months <- ls_value_input[["max_data"]]
         
-        plot(month_return, type = "n", ylim = c(0, numeric_input_ylim_upper),
+        plot(month_return, type = "n", ylim = c(0, arg.ylim.upper),
              xlim = c(min_for_months + 10, max_for_months - 10), 
              axes = FALSE,main = PlotMainName,
-             xlab = '私募基金年收益率(%)',ylab = '分布密度')
+             xlab = '年收益率(%)',ylab = '分布密度')
         
         x_break_number <- seq(from = round(min_for_months,digits = -1) - 10,
                               to = round(max_for_months,digits = -1) + 10, 
@@ -268,7 +257,7 @@ DrawMonthValueCurve <- function(numeric_input_ylim_upper, ls_value_input,
         
         #draw grid lines
         
-        index_y_grid <- seq(from = 0, to = numeric_input_ylim_upper, by = 0.01)
+        index_y_grid <- seq(from = 0, to = arg.ylim.upper, by = 0.01)
         abline(h = index_y_grid, v = x_break_number, col = "white", 
                lty = "solid",lwd = par("lwd"))
         
@@ -305,7 +294,7 @@ DrawMonthValueCurve <- function(numeric_input_ylim_upper, ls_value_input,
 
         # X-Y axis scale  : the length of Y axis is 1/6 of that of X axis
         
-        XYscale <- ((max_for_months - min_for_months) / 6 ) / numeric_input_ylim_upper
+        XYscale <- ((max_for_months - min_for_months) / 6 ) / arg.ylim.upper
         
         ## Call curve drawing funtion
         
@@ -702,8 +691,8 @@ DrawMonthValueMovingCurve <- function(ls_value_input, arg.year = 2016,
 
   plot(month_return, type = "n", ylim = c(0, numeric_input_ylim_upper),
        xlim = c(numeric_Specied_xlim_down, numeric_Specied_xlim_upper), 
-       axes = FALSE,main = '私募基金收益分布密度曲线移动轨迹图',
-       xlab = '私募基金年收益率(%)',ylab = '分布密度')
+       axes = FALSE,main = '股票策略型私募基金收益分布密度曲线移动轨迹图',
+       xlab = '年收益率(%)',ylab = '分布密度')
   
   x_break_number <- seq(from = numeric_Specied_xlim_down, 
                         to = numeric_Specied_xlim_upper, by = 5)
@@ -748,9 +737,10 @@ setwd("d:/MyR/jijin")
 ##Usually only numeric_Specied_Month need to be changed
 
 numeric_Specied_Year <- 2016
+numeric_Specied_Month <- 3:5  ## change here every time!
+
 
 ##The following only affects all curve figures
-numeric_Specied_Month <- 3:5  ## change here every time!
 numeric_Specied_ylim_upper <- 0.065 ## It may be needed to change here !
 
 ##The following only affects the last curve figure
@@ -769,10 +759,9 @@ ls_value <- InputData(numeric_Specied_Year,numeric_Specied_Month)
 ## debug模式启动后，观察DF_processed数据框，再考虑如何设置距离门限以调整文字间距
 ## 因为距离计算公式考虑XY轴缩放比例，而X轴与收益率相关，所以可能每次都要调整门限
 
-func_draw_all_month_curve(arg_ls_value = ls_value,
+DrawAllMonthCurve(arg.ls.value = ls_value, arg.year = numeric_Specied_Year,
                           numeric_Specied_Month,
-                          arg.year = numeric_Specied_Year,
-                          numeric_input_ylim_upper = 
+                          arg.ylim.upper = 
                                   numeric_Specied_ylim_upper)
 
 
