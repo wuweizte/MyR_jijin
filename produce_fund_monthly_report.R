@@ -151,8 +151,8 @@ InputData <- function(arg.year = 2016, arg.month = 2) {
 
         accepted.fund.name <- GetFundNameVector(ls.value.data, arg.year, arg.month)
         
-        min.value <- 0
-        max.value <- 0
+        min.value <- Inf
+        max.value <- -Inf
         for(i in arg.month){
 
                 month.index <- GetCSVMonthName(arg.year, i)
@@ -176,7 +176,8 @@ InputData <- function(arg.year = 2016, arg.month = 2) {
 
 ## 
 DrawAllMonthCurve <- function(arg.ls.value, arg.year, arg.month,
-                                      arg.ylim.upper = 0.04){
+                                      arg.ylim.upper = 0.04,
+                              arg.x.slope, arg.y.slope, arg.dist.lowthreshold){
 
         # 3. Draw monthly return curve for the specified month
         # 3-1 Execution Control Funciton
@@ -211,11 +212,25 @@ DrawAllMonthCurve <- function(arg.ls.value, arg.year, arg.month,
                         (length.specied.month - 2):length.specied.month]
         }
 
-        lapply(month.to.draw, DrawMonthValueCurve, 
-               arg.ylim.upper = arg.ylim.upper,
-               ls_value_input = arg.ls.value,
-               arg.year = numeric_Specied_Year, 
-               Var_rug_flag = rug.flag)
+        ls.value.input <- arg.ls.value
+        #browser()
+        for(i in month.to.draw) {
+                ls.value.input <- DrawMonthValueCurve( 
+                                         arg.ylim.upper = arg.ylim.upper,
+                                         ls_value_input = ls.value.input,
+                                         arg.year = numeric_Specied_Year,
+                                         arg.month = i,
+                                         Var_rug_flag = rug.flag,
+                                         arg.x.slope, arg.y.slope,
+                                         arg.dist.lowthreshold)
+        }
+        # ls.value.input <- lapply(month.to.draw, DrawMonthValueCurve, 
+        #                          arg.ylim.upper = arg.ylim.upper,
+        #                          ls_value_input = arg.ls.value,
+        #                          arg.year = numeric_Specied_Year, 
+        #                          Var_rug_flag = rug.flag)
+        #browser()
+        return(ls.value.input)
 }
 
 
@@ -225,9 +240,10 @@ DrawAllMonthCurve <- function(arg.ls.value, arg.year, arg.month,
 
 DrawMonthValueCurve <- function(arg.ylim.upper, ls_value_input, 
                                 arg.year = 2016, arg.month = 2,
-                                Var_rug_flag = 0){
+                                Var_rug_flag = 0,
+                                arg.x.slope, arg.y.slope, arg.dist.lowthreshold){
                                 
-        
+        #browser()
         if(arg.month == 13){
                 PlotMainName <- paste('股票策略型私募基金收益分布密度曲线(截止到',
                                       arg.year+1,'-1-5)',sep = "")
@@ -292,21 +308,29 @@ DrawMonthValueCurve <- function(arg.ylim.upper, ls_value_input,
                 as.numeric(CSVData[CSVData[,1] == "华润信托昀沣4号集合资金信托计划",2])
                 
 
-        # X-Y axis scale  : the length of Y axis is 1/6 of that of X axis
+        # X-Y axis scale  : the length of Y axis is 1/4.5  of that of X axis
         
-        XYscale <- ((max_for_months - min_for_months) / 6 ) / arg.ylim.upper
+        XYscale <- ((max_for_months - min_for_months) / 4.5 ) / arg.ylim.upper
         
         ## Call curve drawing funtion
         
         #browser()
-        density_mean_sd(x = month_return, lwd = 1,  lcol = SelectedColor, 
-                        zhao_value,zhanbo_value,yunfeng_value, XYscale)        
+        DF_processed <- density_mean_sd(x = month_return, lwd = 1,  
+                                        lcol = SelectedColor, 
+                        zhao_value,zhanbo_value,yunfeng_value, 
+                        XYscale,
+                        arg.x.slope, arg.y.slope, arg.dist.lowthreshold)
         
+        
+        ls_value_input[[paste0("DF_processed.", CSVmonth_name)]] <- DF_processed
+        #browser()
+        return(ls_value_input)
 }
 
 ##  3-3 Draw the monthly return density curve
 
-density_mean_sd <- function(x, lwd, lcol, zhao, zhanbo,yunfeng, arg_XYscale){
+density_mean_sd <- function(x, lwd, lcol, zhao, zhanbo,yunfeng, arg_XYscale,
+                            arg.x.slope, arg.y.slope, arg.dist.lowthreshold){
         
         #draw density Curve
         r <- density(x)
@@ -343,11 +367,12 @@ density_mean_sd <- function(x, lwd, lcol, zhao, zhanbo,yunfeng, arg_XYscale){
         DF_processed <- func_process_line_text(DF_lineText)
         
         #browser()
-        DF_processed <- func_set_text_adjacent_distance(DF_processed, arg_XYscale)
+        DF_processed <- func_set_text_adjacent_distance(DF_processed, arg_XYscale,
+                                                        arg.x.slope, arg.y.slope)
        
         DF_processed <- func_set_text_distance_to_median(DF_processed, arg_XYscale)
                
-        DF_processed <- func_modify_text_position(DF_processed)
+        DF_processed <- func_modify_text_position(DF_processed, arg.dist.lowthreshold)
         #browser()
         
         ## Line drawing and text labelling        
@@ -358,6 +383,7 @@ density_mean_sd <- function(x, lwd, lcol, zhao, zhanbo,yunfeng, arg_XYscale){
         ##  to check the dist column of DF_processed
         
         #browser()
+        return(DF_processed)
 }
 
 ## 3-4 Input data frame with figure information about line and text
@@ -431,7 +457,8 @@ func_process_line_text <- function(arg_DF_lineText){
 }
 
 ## 3-5 Modify text position in the density curve
-func_set_text_adjacent_distance <- function(arg_DF_processed_first, arg_XYscale){
+func_set_text_adjacent_distance <- function(arg_DF_processed_first, arg_XYscale,
+                                            arg.x.slope, arg.y.slope){
        
         tbl_df_text_position <- tbl_df(arg_DF_processed_first)
         tbl_df_text_position <- arrange(tbl_df_text_position, linex)
@@ -466,13 +493,19 @@ func_set_text_adjacent_distance <- function(arg_DF_processed_first, arg_XYscale)
                 ## because the scales of X axis and Y axis are different
 
                 df_filter_left_combine <- transform(df_filter_left_combine,
-                                                    distance = abs(linex1- linex2) + 
-                                                            abs(liney1- liney2) * arg_XYscale
+                                                    distance = arg.x.slope * abs(linex1- linex2) + 
+                                                            arg.y.slope * abs(liney1- liney2) * arg_XYscale,
+                                                    distance.x = abs(linex1- linex2),
+                                                    distance.y = abs(liney1- liney2) * arg_XYscale
                 )
                 
                 df_filter_left$distance <- c(Inf, df_filter_left_combine$distance)
+                df_filter_left$distance.x <- c(Inf, df_filter_left_combine$distance.x)
+                df_filter_left$distance.y <- c(Inf, df_filter_left_combine$distance.y)
         }else{
                 df_filter_left$distance <- Inf
+                df_filter_left$distance.x <- Inf
+                df_filter_left$distance.y <- Inf
         }
         #browser()
         
@@ -485,24 +518,49 @@ func_set_text_adjacent_distance <- function(arg_DF_processed_first, arg_XYscale)
                                                        "linex2", "liney2")
 
                 df_filter_right_combine <- transform(df_filter_right_combine,
-                                                    distance = abs(linex1- linex2) + 
-                                                            abs(liney1- liney2) * arg_XYscale
+                                                    distance = arg.x.slope * abs(linex1- linex2) + 
+                                                            arg.y.slope * abs(liney1- liney2) * arg_XYscale,
+                                                    distance.x = abs(linex1- linex2),
+                                                    distance.y = abs(liney1- liney2) * arg_XYscale
                 )
                 
                 
-                df_filter_right$distance <- c(df_filter_right_combine$distance,Inf)
+                df_filter_right$distance <- c(df_filter_right_combine$distance, Inf)
+                df_filter_right$distance.x <- c(df_filter_right_combine$distance.x, Inf)
+                df_filter_right$distance.y <- c(df_filter_right_combine$distance.y, Inf)
         }else{
                 df_filter_right$distance <- Inf
+                df_filter_right$distance.x <- Inf
+                df_filter_right$distance.y <- Inf
         }
         
         median_dist <- min(df_filter_left$distance[nrow(df_filter_left)],
                            df_filter_right$distance[1])
+        
+        if (df_filter_left$distance[nrow(df_filter_left)] <= df_filter_right$distance[1]){
+                median_dist.x <- df_filter_left$distance.x[nrow(df_filter_left)]
+                median_dist.y <- df_filter_left$distance.y[nrow(df_filter_left)]
+        } else {
+                median_dist.x <- df_filter_right$distance.x[1]
+                median_dist.y <- df_filter_right$distance.y[1]
+        }
         
         #browser()
         tbl_df_text_position$dist <- c(df_filter_left$distance[-nrow(df_filter_left)],
                                        median_dist,
                                        df_filter_right$distance[-1]
         )
+        
+        tbl_df_text_position$dist.x <- c(df_filter_left$distance.x[-nrow(df_filter_left)],
+                                       median_dist.x,
+                                       df_filter_right$distance.x[-1]
+        )
+
+        tbl_df_text_position$dist.y <- c(df_filter_left$distance.y[-nrow(df_filter_left)],
+                                         median_dist.y,
+                                         df_filter_right$distance.y[-1]
+        )
+        
         return(tbl_df_text_position)
 }
 
@@ -529,14 +587,16 @@ func_set_text_distance_to_median <- function(arg_DF_processed, arg_XYscale){
         return(tbl_df_text_position)
 }
 
-func_modify_text_position <- function(arg_DF_processed){
-        tbl_df_text_position <- arg_DF_processed
+func_modify_text_position <- function(arg_DF_processed, arg.dist.lowthreshold){
 
+        tbl_df_text_position <- arg_DF_processed
+        tbl_df_text_position$modified.flag <- FALSE
+         
         rownum_median <- which(tbl_df_text_position$linename == "median")
 
         ## This threshold can be observed through 'browser()' 
         ## in  density_mean_sd function
-        dist_lowthreshold <- 2.3
+        #dist_lowthreshold <- 1
         
         dist_to_median_threshold <- 0.24
         
@@ -545,8 +605,10 @@ func_modify_text_position <- function(arg_DF_processed){
         SmallStep <- LargeStep/4
         #browser()
         for (i in 2:(nrow(tbl_df_text_position) - 1)) {
-                if(tbl_df_text_position$dist[i] < dist_lowthreshold){
+                if(tbl_df_text_position$dist[i] < arg.dist.lowthreshold){
                         
+                        tbl_df_text_position$modified.flag[i] <- TRUE 
+                                
                         tbl_df_text_position$drawy[i] <- 
                                 tbl_df_text_position$drawy[i] + LargeStep
                         
@@ -614,7 +676,7 @@ func_draw_line_text <- function(arg_DF_processed){
                 
                 #对于中值，线与文字不再公用x坐标，文字稍微左移               
                 if(rowlinename == "median"){
-                        text(linex - 10,texty,labels = rowlabel,pos = rowpos, 
+                        text(linex - 7,texty,labels = rowlabel,pos = rowpos, 
                              font = 3, 
                              cex = rowcex,
                              col = rowcol)  
@@ -645,7 +707,7 @@ DrawBoardIndex <- function(filename, boardindexname, titlecontent,legendx,
   dimnames(Board_Index_array) <- list(unique(B$date), boardindexname)
                                       
   
-  bar_x <- barplot(Board_Index_array, beside = TRUE,ylim = c(-35,0), 
+  bar_x <- barplot(Board_Index_array, beside = TRUE,ylim = c(-35,10), 
                    main = titlecontent, 
                    ylab = "涨幅(%)", 
                    density = seq(from = 20, to = 20 * month_number, by = 20),  
@@ -737,7 +799,7 @@ setwd("d:/MyR/jijin")
 ##Usually only numeric_Specied_Month need to be changed
 
 numeric_Specied_Year <- 2016
-numeric_Specied_Month <- 3:5  ## change here every time!
+numeric_Specied_Month <- 2:7  ## change here every time!
 
 
 ##The following only affects all curve figures
@@ -755,20 +817,26 @@ ls_value <- InputData(numeric_Specied_Year,numeric_Specied_Month)
 
 
 ## Draw monthly return curve for the specified month
-## the browser() in density_mean_sd function should be enabled if text is overlapped
-## debug模式启动后，观察DF_processed数据框，再考虑如何设置距离门限以调整文字间距
-## 因为距离计算公式考虑XY轴缩放比例，而X轴与收益率相关，所以可能每次都要调整门限
 
-DrawAllMonthCurve(arg.ls.value = ls_value, arg.year = numeric_Specied_Year,
+## 观察哪些点存在重叠情况，然后使用ls_value携带的针对每个月的DF_processed里由(dist.x, dist.y)
+## 确定的点的信息出图，观察arg.x.slope * dist.x + arg.y.slope * dist.y = arg.dist.lowthreshold
+## 这条直线所属的系数如何设置才能将需要提升位置与不需要提升位置的点区分开
+
+## 这里还需要人工确定标签是否重叠，事实上应该可以判断标签对应的外围矩形框是否重叠而由电脑自动
+## 完成判断及调整工作---留待后续修改算法
+
+ls_value <- DrawAllMonthCurve(arg.ls.value = ls_value, arg.year = numeric_Specied_Year,
                           numeric_Specied_Month,
                           arg.ylim.upper = 
-                                  numeric_Specied_ylim_upper)
+                                  numeric_Specied_ylim_upper,
+                          arg.x.slope = 0, arg.y.slope = 1, 
+                          arg.dist.lowthreshold = 1)
 
-
+#browser()
 #大盘指数: Manual action to the coordinates of legend may be needed.
 DrawBoardIndex("dapanzhishu2016.csv",
                c("上证综指","创业板","港股通精选100指数"), 
-               "大盘涨幅(从2016年初开始)", 18, -21,"steelblue")
+               "大盘涨幅(从2016年初开始)", 21, -21,"steelblue")
 
 
 #月收益率曲线移动轨迹图, The input months length can be larger than 3
@@ -795,6 +863,6 @@ if(length(numeric_Specied_Month) > 2){
                 #如果记录赵基金持仓板块涨幅的文件存在，则要多描绘一个图，否则省略
                 DrawBoardIndex("zhaobankuaizhishu2016.csv",
                                c("高端装备指数000097","医药指数399913","消费指数399912"), 
-                               "机构推荐板块涨幅(从2016年初开始)", 18, -20,"springgreen4")
+                               "机构推荐板块涨幅(从2016年初开始)", 21, -20,"springgreen4")
         }        
 }
