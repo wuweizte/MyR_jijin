@@ -1,5 +1,5 @@
 #### Author Comment Part
-# modified on 2016-7-1
+# modified on 2016-9-22
 
 #### File Descriptiong Part
 # 代码目的：用于比较私募排排网提供的基金收益率信息
@@ -31,8 +31,10 @@ DesignPlotLayout <- function(arg.month){
         } else  {
                 if (file.exists("zhaobankuaizhishu2016.csv")){
                         #如果记录赵基金持仓板块涨幅的文件存在，则要多描绘一个图
-                        plot.layout.matrix <- matrix(c(1, 1, 5, 5, 2, 2, 4, 4,
-                                                       3, 3, 6, 6), nr = 3,
+                        plot.layout.matrix <- matrix(c(1, 1, 5, 5, 5, 
+                                                       2, 2, 4, 4, 4,
+                                                       3, 3, 6, 6, 6), 
+                                                     nr = 3,
                                                      byrow = TRUE)
                 } else {
                         plot.layout.matrix <- matrix(c(1, 1, 5, 5, 2, 2, 4, 4,
@@ -175,9 +177,13 @@ InputData <- function(arg.year = 2016, arg.month = 2) {
 
 
 ## 
-DrawAllMonthCurve <- function(arg.ls.value, arg.year, arg.month,
-                                      arg.ylim.upper = 0.04,
-                              arg.x.slope, arg.y.slope, arg.dist.lowthreshold){
+DrawAllMonthCurve <- function(arg.ls.value, 
+                              arg.year, 
+                              arg.month,
+                              arg.x.slope, 
+                              arg.y.slope, 
+                              arg.dist.lowthreshold,
+                              arg.ylim.upper = 0.04){
 
         # 3. Draw monthly return curve for the specified month
         # 3-1 Execution Control Funciton
@@ -186,10 +192,15 @@ DrawAllMonthCurve <- function(arg.ls.value, arg.year, arg.month,
         #   arg.ls.value: 已经填好数据的列表
         #   arg.year: 绘画针对的年份，以单向量形式输入
         #   arg.month: 绘画针对的月份范围，以向量形式输入
+
+        #   arg.x.slope, arg.y.slope, arg.dist.lowthreshold:   
+        #       直线arg.x.slope * x + arg.y.slope * y = arg.dist.lowthreshold 
+        #       用来区分需要调整间距的点与不需要调整的点
+        
         #   arg.ylim.upper: 图中Y轴刻度上限
         # 
         # Returns:
-        #   没有返回，结尾是调用子函数
+        #   arg.ls.value ： 返回已经添加了密度曲线上标识点的信息数据框后的数据列表
         
         ##let user to determine whether rug lines should be drawn.
         cat("\n\nIf you want to draw rug lines in x coordinate axis,please input yes.")
@@ -213,118 +224,136 @@ DrawAllMonthCurve <- function(arg.ls.value, arg.year, arg.month,
         }
 
         ls.value.input <- arg.ls.value
-        #browser()
         for(i in month.to.draw) {
                 ls.value.input <- DrawMonthValueCurve( 
                                          arg.ylim.upper = arg.ylim.upper,
-                                         ls_value_input = ls.value.input,
-                                         arg.year = numeric_Specied_Year,
+                                         arg.ls.value = ls.value.input,
+                                         arg.x.slope, 
+                                         arg.y.slope,
+                                         arg.dist.lowthreshold,
+                                         arg.year,
                                          arg.month = i,
-                                         Var_rug_flag = rug.flag,
-                                         arg.x.slope, arg.y.slope,
-                                         arg.dist.lowthreshold)
+                                         arg.rug.flag = rug.flag)
         }
-        # ls.value.input <- lapply(month.to.draw, DrawMonthValueCurve, 
-        #                          arg.ylim.upper = arg.ylim.upper,
-        #                          ls_value_input = arg.ls.value,
-        #                          arg.year = numeric_Specied_Year, 
-        #                          Var_rug_flag = rug.flag)
-        #browser()
+
         return(ls.value.input)
 }
 
 
-## 3-2 Prepare to draw monthly return curve
-#     Var_rug_flag : flag variabel used to determine whether rug lines should
-#                    be drawn.
 
-DrawMonthValueCurve <- function(arg.ylim.upper, ls_value_input, 
-                                arg.year = 2016, arg.month = 2,
-                                Var_rug_flag = 0,
-                                arg.x.slope, arg.y.slope, arg.dist.lowthreshold){
-                                
-        #browser()
+DrawMonthValueCurve <- function(arg.ylim.upper, 
+                                arg.ls.value, 
+                                arg.x.slope, 
+                                arg.y.slope, 
+                                arg.dist.lowthreshold,
+                                arg.year = 2016, 
+                                arg.month = 2,
+                                arg.rug.flag = 0){
+
+        # 3. Draw monthly return curve for the specified month
+        ## 3-2 Prepare to draw monthly return curve
+        # 
+        # Args:
+        #   arg.ylim.upper: 图中Y轴刻度上限
+        #   arg.ls.value: 已经填好数据的列表
+        
+        #   arg.x.slope, arg.y.slope, arg.dist.lowthreshold:   
+        #       直线arg.x.slope * x + arg.y.slope * y = arg.dist.lowthreshold 
+        #       用来区分需要调整间距的点与不需要调整的点
+        
+        #   arg.year: 绘画针对的年份，以单向量形式输入
+        #   arg.month: 绘画针对的月份范围，以向量形式输入
+        #   arg.rug.flag: 标志变量，说明用户是否选择画rug line
+
+        # 
+        # Returns:
+        #   arg.ls.value ： 返回已经添加了密度曲线上标识点的信息数据框后的数据列表
+        
+        
         if(arg.month == 13){
-                PlotMainName <- paste('股票策略型私募基金收益分布密度曲线(截止到',
+                plot.main.name <- paste('股票策略型私募基金收益分布密度曲线(截止到',
                                       arg.year+1,'-1-5)',sep = "")
         }else{
-                PlotMainName <- paste('股票策略型私募基金收益分布密度曲线(截止到',
+                plot.main.name <- paste('股票策略型私募基金收益分布密度曲线(截止到',
                                       arg.year,'-',arg.month ,'-5)',sep = "")
         }
 
-        CSVmonth_name <- GetCSVMonthName(arg.year, arg.month)
-        CSVData <- ls_value_input[[CSVmonth_name]]
-        month_return <- CSVData[,2]
+        csv.month.name <- GetCSVMonthName(arg.year, arg.month)
+        csv.data <- arg.ls.value[[csv.month.name]]
+        month.return <- csv.data[,2]
         
-        min_for_months <- ls_value_input[["min_data"]]
-        max_for_months <- ls_value_input[["max_data"]]
+        min.return <- arg.ls.value[["min_data"]]
+        max.return <- arg.ls.value[["max_data"]]
         
-        plot(month_return, type = "n", ylim = c(0, arg.ylim.upper),
-             xlim = c(min_for_months + 10, max_for_months - 10), 
-             axes = FALSE,main = PlotMainName,
-             xlab = '年收益率(%)',ylab = '分布密度')
+        plot(month.return, 
+             type = "n", 
+             ylim = c(0, arg.ylim.upper),
+             xlim = c(min.return + 10, max.return - 10), 
+             axes = FALSE,
+             main = plot.main.name,
+             xlab = '年收益率(%)',
+             ylab = '分布密度')
         
-        x_break_number <- seq(from = round(min_for_months,digits = -1) - 10,
-                              to = round(max_for_months,digits = -1) + 10, 
+        x.axis.grid.points <- seq(from = round(min.return,digits = -1) - 10,
+                              to = round(max.return,digits = -1) + 10, 
                               by = 10)
         
-        axis(1, at = x_break_number, labels = x_break_number)
+        axis(1, at = x.axis.grid.points, labels = x.axis.grid.points)
         axis(2, las = 1)
         
         #draw grid lines
+        y.axis.grid.points <- seq(from = 0, 
+                             to = arg.ylim.upper, 
+                             by = 0.01)
         
-        index_y_grid <- seq(from = 0, to = arg.ylim.upper, by = 0.01)
-        abline(h = index_y_grid, v = x_break_number, col = "white", 
-               lty = "solid",lwd = par("lwd"))
+        abline(h = y.axis.grid.points, 
+               v = x.axis.grid.points, 
+               col = "white", 
+               lty = "solid",
+               lwd = par("lwd"))
         
         #draw rug lines
         #(rug function can't be used for making lines transparent effect)
+        x.axis.rug.points <- rep(month.return, each = 2)
+        y.axis.rug.points <- rep(c(-0.2,0), times = length(month.return))
         
-        index_x_rug <- rep(month_return, each = 2)
-        index_y_rug <- rep(c(-0.2,0), times = length(month_return))
-        
-        if (Var_rug_flag == 1){
-                lines(index_x_rug, index_y_rug, col = "tan2")
+        if (arg.rug.flag == 1){
+                lines(x.axis.rug.points, y.axis.rug.points, col = "tan2")
         }
-        
         
         ## Prepare parameters for curve drawing funtion
         
         #let colors of density curves in monthly plot to be same as those in
         # moving curve
+        month.range <- arg.ls.value[["month_range"]]
+        col.for.lines <- brewer.pal(length(month.range), "Set1") 
+        col.seq <- seq_along(month.range)
+        names(col.seq) <- month.range
         
-        month_range <- ls_value_input[["month_range"]]
-        col_for_lines <- brewer.pal(length(month_range), "Set1") 
-        
-        col_seq <- seq_along(month_range)
-        names(col_seq) <- month_range
-        
-        SelectedColor <- col_for_lines[col_seq[as.character(arg.month)]]
+        selected.color <- col.for.lines[col.seq[as.character(arg.month)]]
         
         # Profits for specified funds
-        zhao_value <- as.numeric(CSVData[CSVData[,1] == "赤子之心价值",2])
-        zhanbo_value <- as.numeric(CSVData[CSVData[,1] == "展博1期",2])
-        yunfeng_value <- 
-                as.numeric(CSVData[CSVData[,1] == "华润信托昀沣4号集合资金信托计划",2])
-                
+        zhao.return <- as.numeric(csv.data[csv.data[,1] == "赤子之心价值",2])
+        zhanbo.return <- as.numeric(csv.data[csv.data[,1] == "展博1期",2])
+        yunfeng.return <- as.numeric(csv.data[csv.data[,1] == "华润信托昀沣4号集合资金信托计划",2]) 
 
         # X-Y axis scale  : the length of Y axis is 1/4.5  of that of X axis
-        
-        XYscale <- ((max_for_months - min_for_months) / 4.5 ) / arg.ylim.upper
+        xy.scale <- ((max.return - min.return) / 4.5 ) / arg.ylim.upper
         
         ## Call curve drawing funtion
-        
-        #browser()
-        DF_processed <- density_mean_sd(x = month_return, lwd = 1,  
-                                        lcol = SelectedColor, 
-                        zhao_value,zhanbo_value,yunfeng_value, 
-                        XYscale,
-                        arg.x.slope, arg.y.slope, arg.dist.lowthreshold)
-        
-        
-        ls_value_input[[paste0("DF_processed.", CSVmonth_name)]] <- DF_processed
-        #browser()
-        return(ls_value_input)
+        df.processed <- density_mean_sd(x = month.return, 
+                                        lwd = 1,  
+                                        lcol = selected.color, 
+                                        zhao.return,
+                                        zhanbo.return,
+                                        yunfeng.return, 
+                                        xy.scale,
+                                        arg.x.slope, 
+                                        arg.y.slope, 
+                                        arg.dist.lowthreshold)
+
+        arg.ls.value[[paste0("DF_processed.", csv.month.name)]] <- df.processed
+        return(arg.ls.value)
 }
 
 ##  3-3 Draw the monthly return density curve
@@ -334,6 +363,8 @@ density_mean_sd <- function(x, lwd, lcol, zhao, zhanbo,yunfeng, arg_XYscale,
         
         #draw density Curve
         r <- density(x)
+        #browser()
+        
         lines(r, col = lcol, lwd = lwd, lty = 1)
         
         x_mean <- mean(x)
@@ -342,6 +373,8 @@ density_mean_sd <- function(x, lwd, lcol, zhao, zhanbo,yunfeng, arg_XYscale,
 
         #get the x sequence number used to find the relative y coordinate 
         # of labels
+        
+        
         
         seq_mean <- length(r$x[r$x < x_mean]) + 1
         seq_sd <- length(r$x[r$x < x_sd]) + 1
@@ -355,10 +388,21 @@ density_mean_sd <- function(x, lwd, lcol, zhao, zhanbo,yunfeng, arg_XYscale,
         ## Prepare data frame for line drawing and text labelling        
         DF_lineText <- data.frame(linename = c("mean","sd","mean + sd", "median",
                                                "zhao","zhanbo","yunfeng"),
-                                  linex = c(mean(x),sd(x),mean(x) + sd(x), median(x), 
-                                            zhao, zhanbo,yunfeng),
-                                  liney = c(r$y[seq_mean],0,r$y[seq_sd],r$y[seq_median],
-                                            r$y[seq_zhao],r$y[seq_zhanbo],r$y[seq_yunfeng]),
+                                  linex = c(mean(x),
+                                            sd(x),
+                                            mean(x) + sd(x), 
+                                            median(x), 
+                                            zhao, 
+                                            zhanbo,
+                                            yunfeng),
+                                  liney = c(r$y[seq_mean],
+                                            0,
+                                            r$y[seq_sd],
+                                            r$y[seq_median],
+                                            #max(r$y), 
+                                            r$y[seq_zhao],
+                                            r$y[seq_zhanbo],
+                                            r$y[seq_yunfeng]),
                                   stringsAsFactors = FALSE
                                   )
         
@@ -373,7 +417,7 @@ density_mean_sd <- function(x, lwd, lcol, zhao, zhanbo,yunfeng, arg_XYscale,
         DF_processed <- func_set_text_distance_to_median(DF_processed, arg_XYscale)
                
         DF_processed <- func_modify_text_position(DF_processed, arg.dist.lowthreshold)
-        #browser()
+        
         
         ## Line drawing and text labelling        
         func_draw_line_text(DF_processed)
@@ -428,7 +472,7 @@ func_process_line_text <- function(arg_DF_lineText){
         
         linex_zhanbo <- DF_result[DF_result$linename == "zhanbo","linex"]
         DF_result[DF_result$linename == "zhanbo","textlabel"] <-
-                paste('展博1期基金收益率 = ',format(linex_zhanbo, digits = 4), '%', 
+                paste('展博1期基金收益率\n = ',format(linex_zhanbo, digits = 4), '%', 
                       sep = '') 
         
         linex_yunfeng <- DF_result[DF_result$linename == "yunfeng","linex"]
@@ -676,7 +720,7 @@ func_draw_line_text <- function(arg_DF_processed){
                 
                 #对于中值，线与文字不再公用x坐标，文字稍微左移               
                 if(rowlinename == "median"){
-                        text(linex - 7,texty,labels = rowlabel,pos = rowpos, 
+                        text(linex - 18,texty,labels = rowlabel,pos = rowpos, 
                              font = 3, 
                              cex = rowcex,
                              col = rowcol)  
@@ -695,35 +739,49 @@ func_draw_line_text <- function(arg_DF_processed){
 ## 4.板块指数描绘函数：用于描绘大盘指数以及赵基金持仓板块
 
 DrawBoardIndex <- function(filename, boardindexname, titlecontent,legendx,
-                           legendy,barcol){
+                           legendy,barcol, monthnumber, board.number,
+                           ylim.lower, ylim.upper){
   
   
   B <- read.csv(file = filename, header = TRUE)
   
-  month_number <- length(B[,5])/3
-  Board_Index_array <- t(array(c(B[,5]), dim = c(3, month_number)))
+  row.number <- nrow(B)
+  
+  ###取最近几个月数据，最多 monthnumber 月
+  if(row.number >= board.number * monthnumber){
+          B <- B[c((row.number - board.number * monthnumber + 1):row.number),]  
+  }
+
+  
+  Board_Index_array <- t(array(c(B[,5]), 
+                               dim = c(board.number, monthnumber)))
   #browser()
   levels(B$date)
   dimnames(Board_Index_array) <- list(unique(B$date), boardindexname)
                                       
   
-  bar_x <- barplot(Board_Index_array, beside = TRUE,ylim = c(-35,10), 
+  bar_x <- barplot(Board_Index_array, beside = TRUE,
+                   ylim = c(ylim.lower, ylim.upper), 
                    main = titlecontent, 
                    ylab = "涨幅(%)", 
-                   density = seq(from = 20, to = 20 * month_number, by = 20),  
+                   density = seq(from = 20, to = 20 * monthnumber, by = 20),  
                    las = 1,col = barcol,
                    legend.text = attr(Board_Index_array, "dimnames")[[1]],
                    args.legend = list(x = legendx, 
                                       y = legendy, 
                                       bty = "n",
-                                      ncol = (month_number %/% 3) + 1,  ##defind column counts of legend
+                                      ncol = (monthnumber %/% 3) + 1,  ##defind column counts of legend
                                       text.width = strwidth("10000")))
   
   
   bar_y <- as.numeric(Board_Index_array)
   
   location_bar_x = bar_x
-  text(location_bar_x, bar_y + sign(bar_y) * 2, paste(bar_y,"%",sep = ""),
+  location_bar_y = bar_y + sign(bar_y) * 4
+  location_bar_y[location_bar_y == 0] <- 3
+  #browser()
+  
+  text(location_bar_x, location_bar_y, paste(bar_y,"%",sep = ""),
        col = "red", font = 3,cex = 0.9)
 }
 
@@ -799,7 +857,7 @@ setwd("d:/MyR/jijin")
 ##Usually only numeric_Specied_Month need to be changed
 
 numeric_Specied_Year <- 2016
-numeric_Specied_Month <- 2:7  ## change here every time!
+numeric_Specied_Month <- 4:9  ## change here every time!
 
 
 ##The following only affects all curve figures
@@ -825,18 +883,25 @@ ls_value <- InputData(numeric_Specied_Year,numeric_Specied_Month)
 ## 这里还需要人工确定标签是否重叠，事实上应该可以判断标签对应的外围矩形框是否重叠而由电脑自动
 ## 完成判断及调整工作---留待后续修改算法
 
-ls_value <- DrawAllMonthCurve(arg.ls.value = ls_value, arg.year = numeric_Specied_Year,
-                          numeric_Specied_Month,
-                          arg.ylim.upper = 
-                                  numeric_Specied_ylim_upper,
-                          arg.x.slope = 0, arg.y.slope = 1, 
-                          arg.dist.lowthreshold = 1)
+ls_value <- DrawAllMonthCurve(arg.ls.value = ls_value, 
+                              arg.year = numeric_Specied_Year,
+                              numeric_Specied_Month,
+                              arg.x.slope = 0, 
+                              arg.y.slope = 1, 
+                              arg.dist.lowthreshold = 4,
+                              arg.ylim.upper = numeric_Specied_ylim_upper)
 
 #browser()
 #大盘指数: Manual action to the coordinates of legend may be needed.
 DrawBoardIndex("dapanzhishu2016.csv",
-               c("上证综指","创业板","港股通精选100指数"), 
-               "大盘涨幅(从2016年初开始)", 21, -21,"steelblue")
+               c("上证综指","深证成指","创业板","港股通精选100指数"), 
+               "大盘涨幅(从2016年初开始)", 
+               10, 35,
+               "steelblue", 
+               monthnumber = 6,
+               board.number = 4,
+               ylim.lower = -35,
+               ylim.upper = 35)
 
 
 #月收益率曲线移动轨迹图, The input months length can be larger than 3
@@ -862,7 +927,14 @@ if(length(numeric_Specied_Month) > 2){
         if(file.exists("zhaobankuaizhishu2016.csv")){
                 #如果记录赵基金持仓板块涨幅的文件存在，则要多描绘一个图，否则省略
                 DrawBoardIndex("zhaobankuaizhishu2016.csv",
-                               c("高端装备指数000097","医药指数399913","消费指数399912"), 
-                               "机构推荐板块涨幅(从2016年初开始)", 21, -20,"springgreen4")
+                               c("高端装备指数000097","医药指数399913",
+                                 "消费指数399912", "黄金"), 
+                               "机构推荐板块涨幅(从2016年初开始)", 
+                               10, 35,
+                               "springgreen4",
+                               monthnumber = 6,
+                               board.number = 4,
+                               ylim.lower = -35,
+                               ylim.upper = 35)
         }        
 }
