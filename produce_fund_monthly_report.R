@@ -1,5 +1,5 @@
 #### Author Comment Part
-# modified on 2016-9-22
+# modified on 2016-11-18
 
 #### File Descriptiong Part
 # 代码目的：用于比较私募排排网提供的基金收益率信息
@@ -300,7 +300,7 @@ DrawMonthValueCurve <- function(arg.ylim.upper,
         
         axis(1, at = x.axis.grid.points, labels = x.axis.grid.points)
         axis(2, las = 1)
-        
+
         #draw grid lines
         y.axis.grid.points <- seq(from = 0, 
                              to = arg.ylim.upper, 
@@ -315,10 +315,19 @@ DrawMonthValueCurve <- function(arg.ylim.upper,
         #draw rug lines
         #(rug function can't be used for making lines transparent effect)
         x.axis.rug.points <- rep(month.return, each = 2)
-        y.axis.rug.points <- rep(c(-0.2,0), times = length(month.return))
+
+        y.axis.rug.points.start <- rep(-0.002, times = length(month.return))
+        y.axis.rug.points.end <- rep(0, times = length(month.return))
         
+        #browser()
         if (arg.rug.flag == 1){
-                lines(x.axis.rug.points, y.axis.rug.points, col = "tan2")
+
+                segments(x0 = x.axis.rug.points,
+                         y0 = y.axis.rug.points.start,
+                         x1 = x.axis.rug.points,
+                         y1 = y.axis.rug.points.end,
+                         col =  rgb(1,0,0,0.1))
+
         }
         
         ## Prepare parameters for curve drawing funtion
@@ -857,7 +866,7 @@ setwd("d:/MyR/jijin")
 ##Usually only numeric_Specied_Month need to be changed
 
 numeric_Specied_Year <- 2016
-numeric_Specied_Month <- 4:9  ## change here every time!
+numeric_Specied_Month <- 6:11  ## change here every time!
 
 
 ##The following only affects all curve figures
@@ -894,8 +903,8 @@ ls_value <- DrawAllMonthCurve(arg.ls.value = ls_value,
 #browser()
 #大盘指数: Manual action to the coordinates of legend may be needed.
 DrawBoardIndex("dapanzhishu2016.csv",
-               c("上证综指","深证成指","创业板","港股通精选100指数"), 
-               "大盘涨幅(从2016年初开始)", 
+               c("上证综指999999","创业板399006","地产指数399952","港股通精选100指数CES100"), 
+               "参考指数涨幅(从2016年初开始)", 
                10, 35,
                "steelblue", 
                monthnumber = 6,
@@ -927,9 +936,9 @@ if(length(numeric_Specied_Month) > 2){
         if(file.exists("zhaobankuaizhishu2016.csv")){
                 #如果记录赵基金持仓板块涨幅的文件存在，则要多描绘一个图，否则省略
                 DrawBoardIndex("zhaobankuaizhishu2016.csv",
-                               c("高端装备指数000097","医药指数399913",
-                                 "消费指数399912", "黄金"), 
-                               "机构推荐板块涨幅(从2016年初开始)", 
+                               c("能源指数399908","材料指数399909","医药指数399913",
+                                 "消费指数399912" ), 
+                               "机构推荐配置涨幅(从2016年初开始)", 
                                10, 35,
                                "springgreen4",
                                monthnumber = 6,
