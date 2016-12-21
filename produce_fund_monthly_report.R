@@ -1,5 +1,5 @@
 #### Author Comment Part
-# modified on 2016-11-18
+# modified on 2016-12-20
 
 #### File Descriptiong Part
 # 代码目的：用于比较私募排排网提供的基金收益率信息
@@ -46,133 +46,6 @@ DesignPlotLayout <- function(arg.month){
         layout(plot.layout.matrix)
 }
 
-GetCSVMonthName <- function(arg.year = 2016, arg.month = 2) {
-        
-        # 2.read csv files to get data
-        #
-        # Args:
-        #   arg.year: 绘画针对的年份，以单向量形式输入
-        #   arg.month: 绘画针对的月份范围，以向量形式输入
-        #
-        # Returns:
-        #   返回ls_value列表中的保存指定时间的csv数据的数据框元素的名称
-        
-        if (arg.month == 13){
-                csv.month.name <- paste("CSVData-",arg.year + 1,"-1-5")
-        }else{
-                csv.month.name <- paste("CSVData-",arg.year,"-",arg.month,"-5",
-                                       sep = "")
-        }
-        return(csv.month.name)
-}
-
-
-
-DeleteDuplicateFundName <- function(arg.fund.name.vector) {
-        
-        # 删除存在重名的基金
-        #
-        # Args:
-        #   arg.fund.name.vector: 原始的基金名称的向量组
-        #
-        # Returns:
-        #   删除重名后的基金名称的向量组
-        
-
-        fund.name.table <- table(arg.fund.name.vector)
-        duplicate.name.vector <- names(fund.name.table[fund.name.table > 1])
-        #browser()
-        selected.flag <- !(arg.fund.name.vector %in% duplicate.name.vector)
-        #browser()
-        result.fund.name.vector <- arg.fund.name.vector[selected.flag]
-        #browser()
-        return(result.fund.name.vector)
-}
-
-GetFundNameVector <- function(arg.ls.value, arg.year = 2016, arg.month = 2) {
-        
-        # 对月份收益数据取交集，确保分析的总体数据在时间上的一致
-        #
-        # Args:
-        #   arg.ls.value: 存放基金月度收益数据的列表
-        #   arg.year: 绘画针对的年份，以单向量形式输入
-        #   arg.month: 绘画针对的月份范围，以向量形式输入
-        #
-        # Returns:
-        #   返回最终用于分析的基金名称列表
-
-
-        csv.month.name <- GetCSVMonthName(arg.year, arg.month[1])
-        fund.Name.vector <- arg.ls.value[[csv.month.name]][,1]
-        #browser() 
-        fund.Name.vector <- DeleteDuplicateFundName(fund.Name.vector)
-        #browser()
-        
-        if(length(arg.month) > 1){
-
-                for(i in arg.month[-1]){
-                        csv.month.name <- GetCSVMonthName(arg.year, i)
-                        
-                        Second.fund.Name.vector <- arg.ls.value[[csv.month.name]][,1]
-                        Second.fund.Name.vector <- DeleteDuplicateFundName(Second.fund.Name.vector)
-                        
-                        fund.Name.vector <- intersect(Second.fund.Name.vector, fund.Name.vector)
-                }
-        }
-        return(fund.Name.vector)
-        
-}        
-
-InputData <- function(arg.year = 2016, arg.month = 2) {
-        # 读取数据文件，选取满足要求的记录存放到全局列表中
-        #
-        # Args:
-        #   arg.year: 绘画针对的年份，以单向量形式输入
-        #   arg.month: 绘画针对的月份范围，以向量形式输入
-        #
-        # Returns:
-        #   返回已经填好数据的列表
-        
-        ls.value.data <- list()
-        for(i in arg.month){
-                if(i == 13){
-                        csv.file.name <- paste("simujijin",arg.year + 1,"-1-5.csv")
-                }else{
-                        csv.file.name <- paste("simujijin",arg.year,"-",i,"-5",".csv", 
-                                         sep = "")
-                }
-                
-                csv.file.content <- read.csv(csv.file.name, stringsAsFactors = FALSE)
-                csv.file.content <- csv.file.content[csv.file.content[,2] != "#NA" & 
-                                           csv.file.content[,2] != "#VALUE!",1:2]
-                
-                month.index <- GetCSVMonthName(arg.year, i)
-                ls.value.data[[month.index]] <- csv.file.content
-        }
-
-
-        accepted.fund.name <- GetFundNameVector(ls.value.data, arg.year, arg.month)
-        
-        min.value <- Inf
-        max.value <- -Inf
-        for(i in arg.month){
-
-                month.index <- GetCSVMonthName(arg.year, i)
-                
-                fund.data <- ls.value.data[[month.index]]
-                fund.data <- fund.data[fund.data[,1] %in% accepted.fund.name,]
-                ls.value.data[[month.index]] <- fund.data
-
-                min.value <- min(as.numeric(fund.data[,2]),min.value)
-                max.value <- max(as.numeric(fund.data[,2]),max.value)
-        }
-
-        ls.value.data[["min_data"]] <- min.value
-        ls.value.data[["max_data"]] <- max.value
-        
-        ls.value.data[["month_range"]] <- arg.month
-        return(ls.value.data)
-}
 
 
 
@@ -861,12 +734,14 @@ DrawMonthValueMovingCurve <- function(ls_value_input, arg.year = 2016,
 ######Execution Part
 
 setwd("d:/MyR/jijin")
+source("input_and_preprocess_data.R")
+
 
 ##Specify the year and month range to draw plots
 ##Usually only numeric_Specied_Month need to be changed
 
 numeric_Specied_Year <- 2016
-numeric_Specied_Month <- 6:11  ## change here every time!
+numeric_Specied_Month <- 7:12  ## change here every time!
 
 
 ##The following only affects all curve figures
