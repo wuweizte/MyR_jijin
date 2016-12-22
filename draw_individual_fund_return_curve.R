@@ -61,7 +61,7 @@ source("input_and_preprocess_data.R")
 
 numeric_Specied_Year <- 2016
 numeric_Specied_Month <- 2:12  ## change here every time!
-draw.label.month <- 5:11  ## change here every time!
+draw.label.month <- 1:11  ## change here every time!
 
 ls_value <- InputData(numeric_Specied_Year,numeric_Specied_Month)
 
@@ -80,17 +80,31 @@ ts.result.yun <- GetIndividualFundReturn(numeric_Specied_Year,
                                        "华润信托昀沣4号集合资金信托计划",
                                        ls_value, 0)
 
+ts.result.qing <- GetIndividualFundReturn(numeric_Specied_Year,
+                                         numeric_Specied_Month,
+                                         "清水源4号",
+                                         ls_value, 0)
+
+# ts.result.xing <- GetIndividualFundReturn(numeric_Specied_Year,
+#                                           numeric_Specied_Month,
+#                                           "星石1期",
+#                                           ls_value, 0)
+
 ts.result.quantile <- GetIndividualFundReturn(numeric_Specied_Year,
                                          numeric_Specied_Month,
                                          "null",
                                          ls_value, 0.8)
 
+
+
 ylim.upper <- max(c(ts.result.chi, 
                     ts.result.zhan,
+                    ts.result.qing,
                     ts.result.yun)) + 4
 
 ylim.lower <- min(c(ts.result.chi, 
                     ts.result.zhan,
+                    ts.result.qing,
                     ts.result.yun)) - 2
 
 par(mfrow = c(1,1))
@@ -122,32 +136,61 @@ axis(2, las = 1, at = y.axis.grid.points,
 
 
 lines(ts.result.chi, type = "o", col = "blue")
-text(2.5, 2.5, "赤子之心价值（赵丹阳）", cex = 0.7, col = "blue")
-text(draw.label.month, 
-     ts.result.chi[draw.label.month] + 1.5, 
-     paste0(round(ts.result.chi[draw.label.month], digits = 2),"%"),
+text(7.25, 28, "赤子之心价值（赵丹阳）", cex = 0.7, col = "blue")
+text(draw.label.month[-4], 
+     ts.result.chi[draw.label.month[-4]] + 1.5, 
+     paste0(round(ts.result.chi[draw.label.month[-4]], digits = 2),"%"),
+     cex = 0.7,
+     col = "blue") 
+text(draw.label.month[4] + 0.25, 
+     ts.result.chi[draw.label.month[4]], 
+     paste0(round(ts.result.chi[draw.label.month[4]], digits = 2),"%"),
      cex = 0.7,
      col = "blue") 
 
+
 lines(ts.result.zhan, type = "o")
-text(2.5, -10, "展博1期（陈锋）", cex = 0.7)
-text(draw.label.month, 
-     ts.result.zhan[draw.label.month] - 1, 
-     paste0(round(ts.result.zhan[draw.label.month], digits = 2),"%"),
-     cex = 0.7) 
+text(7.25, -12, "展博1期（陈锋）", cex = 0.7)
+text(draw.label.month[-c(1:2)], 
+     ts.result.zhan[draw.label.month[-c(1:2)]] - 1, 
+     paste0(round(ts.result.zhan[draw.label.month[-c(1:2)]], digits = 2),"%"),
+     cex = 0.7)
+text(draw.label.month[c(1:2)], 
+     ts.result.zhan[draw.label.month[c(1:2)]] + 1.5, 
+     paste0(round(ts.result.zhan[draw.label.month[c(1:2)]], digits = 2),"%"),
+     cex = 0.7)
      
-
-
 lines(ts.result.yun, type = "o", col = "brown")
-text(2.5, 7, "昀沣4号（王亚伟）", col = "brown", cex = 0.7)
-text(draw.label.month, 
-     ts.result.yun[draw.label.month] - 1.5, 
-     paste0(round(ts.result.yun[draw.label.month], digits = 2),"%"), 
+text(7.25, 16, "昀沣4号（王亚伟）", col = "brown", cex = 0.7)
+text(draw.label.month[-c(2:4)], 
+     ts.result.yun[draw.label.month[-c(2:4)]] - 1.5, 
+     paste0(round(ts.result.yun[draw.label.month[-c(2:4)]], digits = 2),"%"), 
+     col = "brown", cex = 0.7)
+text(draw.label.month[c(2:4)], 
+     ts.result.yun[draw.label.month[c(2:4)]] + 1.5, 
+     paste0(round(ts.result.yun[draw.label.month[c(2:4)]], digits = 2),"%"), 
      col = "brown", cex = 0.7)
 
+lines(ts.result.qing, type = "o", col = "purple")
+text(7.25, -4, "清水源4号（张小川）", col = "purple", cex = 0.7)
+text(draw.label.month,
+     ts.result.qing[draw.label.month] - 1.5,
+     paste0(round(ts.result.qing[draw.label.month], digits = 2),"%"),
+     col = "purple", cex = 0.7)
+# text(draw.label.month[c(2:4)],
+#      ts.result.yun[draw.label.month[c(2:4)]] + 1.5,
+#      paste0(round(ts.result.yun[draw.label.month[c(2:4)]], digits = 2),"%"),
+#      col = "brown", cex = 0.7)
+
+# lines(ts.result.xing, type = "o", col = "green")
+# text(7.25, -4, "（张小川）", col = "green", cex = 0.7)
+# text(draw.label.month,
+#      ts.result.qing[draw.label.month] - 1.5,
+#      paste0(round(ts.result.qing[draw.label.month], digits = 2),"%"),
+#      col = "purple", cex = 0.7)
 
 lines(ts.result.quantile, type = "o", col = "red", lty = "dashed", lwd = 2)
-text(2.5, -1.5, "1400只基金的80%业绩分位点", col = "red", cex = 0.7)
+text(7.25, 3, "1400只基金的80%业绩分位点", col = "red", cex = 0.7)
 text(draw.label.month, 
      ts.result.quantile[draw.label.month] - 1, 
      paste0(round(ts.result.quantile[draw.label.month], digits = 2),"%"), 

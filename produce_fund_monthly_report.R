@@ -218,7 +218,10 @@ DrawMonthValueCurve <- function(arg.ylim.upper,
         zhao.return <- as.numeric(csv.data[csv.data[,1] == "赤子之心价值",2])
         zhanbo.return <- as.numeric(csv.data[csv.data[,1] == "展博1期",2])
         yunfeng.return <- as.numeric(csv.data[csv.data[,1] == "华润信托昀沣4号集合资金信托计划",2]) 
-
+        qing.return <- as.numeric(csv.data[csv.data[,1] == "清水源4号",2]) 
+        
+        # browser()
+        
         # X-Y axis scale  : the length of Y axis is 1/4.5  of that of X axis
         xy.scale <- ((max.return - min.return) / 4.5 ) / arg.ylim.upper
         
@@ -229,6 +232,7 @@ DrawMonthValueCurve <- function(arg.ylim.upper,
                                         zhao.return,
                                         zhanbo.return,
                                         yunfeng.return, 
+                                        qing.return,
                                         xy.scale,
                                         arg.x.slope, 
                                         arg.y.slope, 
@@ -240,7 +244,7 @@ DrawMonthValueCurve <- function(arg.ylim.upper,
 
 ##  3-3 Draw the monthly return density curve
 
-density_mean_sd <- function(x, lwd, lcol, zhao, zhanbo,yunfeng, arg_XYscale,
+density_mean_sd <- function(x, lwd, lcol, zhao, zhanbo,yunfeng, qing, arg_XYscale,
                             arg.x.slope, arg.y.slope, arg.dist.lowthreshold){
         
         #draw density Curve
@@ -265,18 +269,19 @@ density_mean_sd <- function(x, lwd, lcol, zhao, zhanbo,yunfeng, arg_XYscale,
         seq_zhao <- length(r$x[r$x < zhao]) + 1
         seq_zhanbo <- length(r$x[r$x < zhanbo]) + 1
         seq_yunfeng <- length(r$x[r$x < yunfeng]) + 1
-        
+        seq_qing <- length(r$x[r$x < qing]) + 1
         
         ## Prepare data frame for line drawing and text labelling        
         DF_lineText <- data.frame(linename = c("mean","sd","mean + sd", "median",
-                                               "zhao","zhanbo","yunfeng"),
+                                               "zhao","zhanbo","yunfeng","qing"),
                                   linex = c(mean(x),
                                             sd(x),
                                             mean(x) + sd(x), 
                                             median(x), 
                                             zhao, 
                                             zhanbo,
-                                            yunfeng),
+                                            yunfeng,
+                                            qing),
                                   liney = c(r$y[seq_mean],
                                             0,
                                             r$y[seq_sd],
@@ -284,7 +289,8 @@ density_mean_sd <- function(x, lwd, lcol, zhao, zhanbo,yunfeng, arg_XYscale,
                                             #max(r$y), 
                                             r$y[seq_zhao],
                                             r$y[seq_zhanbo],
-                                            r$y[seq_yunfeng]),
+                                            r$y[seq_yunfeng],
+                                            r$y[seq_qing]),
                                   stringsAsFactors = FALSE
                                   )
         
@@ -322,6 +328,7 @@ func_process_line_text <- function(arg_DF_lineText){
         DF_result[DF_result$linename == "zhao","col"] <- "black"
         DF_result[DF_result$linename == "zhanbo","col"] <- "darkcyan"
         DF_result[DF_result$linename == "yunfeng","col"] <- "blue"
+        DF_result[DF_result$linename == "qing","col"] <- "darkgreen"
         
         ##lty
         DF_result$lty <- 5
@@ -332,6 +339,7 @@ func_process_line_text <- function(arg_DF_lineText){
         DF_result[DF_result$linename == "zhao","textcex"] <- 0.9
         DF_result[DF_result$linename == "zhanbo","textcex"] <- 0.9
         DF_result[DF_result$linename == "yunfeng","textcex"] <- 0.9
+        DF_result[DF_result$linename == "qing","textcex"] <- 0.9
         
         ##textpos
         DF_result$textpos <- 4
@@ -360,6 +368,11 @@ func_process_line_text <- function(arg_DF_lineText){
         linex_yunfeng <- DF_result[DF_result$linename == "yunfeng","linex"]
         DF_result[DF_result$linename == "yunfeng","textlabel"] <-
                 paste('昀沣4号基金收益率 = ',format(linex_yunfeng, digits = 4), '%', 
+                      sep = '') 
+        
+        linex_qing <- DF_result[DF_result$linename == "qing","linex"]
+        DF_result[DF_result$linename == "qing","textlabel"] <-
+                paste('清水源4号基金收益率 = ',round(linex_qing, digits = 2), '%', 
                       sep = '') 
         
         linex_mean <- DF_result[DF_result$linename == "mean","linex"]

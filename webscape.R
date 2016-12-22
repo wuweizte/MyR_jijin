@@ -13,11 +13,12 @@ for(i in 1:62){
         
         df <- json.data$data
         if(i == 1){
-                result <- df[,c("fund_short_name", "ret_ytd", "company_short_name")] 
+                result <- df[,c("fund_short_name", "ret_ytd", "company_short_name")]
         } else if(i > 1){
                 result <- rbind(result, df[,c("fund_short_name", "ret_ytd", "company_short_name")])
-                                
+
         }
+
 }
 
 #####网页显示的基金名称和JSON数据不一致时，清理掉名称头部
