@@ -218,7 +218,7 @@ DrawMonthValueCurve <- function(arg.ylim.upper,
         zhao.return <- as.numeric(csv.data[csv.data[,1] == "赤子之心价值",2])
         zhanbo.return <- as.numeric(csv.data[csv.data[,1] == "展博1期",2])
         yunfeng.return <- as.numeric(csv.data[csv.data[,1] == "华润信托昀沣4号集合资金信托计划",2]) 
-        qing.return <- as.numeric(csv.data[csv.data[,1] == "清水源4号",2]) 
+        qing.return <- as.numeric(csv.data[csv.data[,1] == "清水源1号",2]) 
         
         # browser()
         
@@ -271,7 +271,8 @@ density_mean_sd <- function(x, lwd, lcol, zhao, zhanbo,yunfeng, qing, arg_XYscal
         seq_yunfeng <- length(r$x[r$x < yunfeng]) + 1
         seq_qing <- length(r$x[r$x < qing]) + 1
         
-        ## Prepare data frame for line drawing and text labelling        
+        ## Prepare data frame for line drawing and text labelling  
+        # browser()
         DF_lineText <- data.frame(linename = c("mean","sd","mean + sd", "median",
                                                "zhao","zhanbo","yunfeng","qing"),
                                   linex = c(mean(x),
@@ -372,7 +373,7 @@ func_process_line_text <- function(arg_DF_lineText){
         
         linex_qing <- DF_result[DF_result$linename == "qing","linex"]
         DF_result[DF_result$linename == "qing","textlabel"] <-
-                paste('清水源4号基金收益率 = ',round(linex_qing, digits = 2), '%', 
+                paste('清水源1号基金收益率\n = ',round(linex_qing, digits = 2), '%', 
                       sep = '') 
         
         linex_mean <- DF_result[DF_result$linename == "mean","linex"]
@@ -754,7 +755,7 @@ source("input_and_preprocess_data.R")
 ##Usually only numeric_Specied_Month need to be changed
 
 numeric_Specied_Year <- 2016
-numeric_Specied_Month <- 7:12  ## change here every time!
+numeric_Specied_Month <- 8:13  ## change here every time!
 
 
 ##The following only affects all curve figures

@@ -10,7 +10,8 @@ GetCSVMonthName <- function(arg.year = 2016, arg.month = 2) {
         #   返回ls_value列表中的保存指定时间的csv数据的数据框元素的名称
         
         if (arg.month == 13){
-                csv.month.name <- paste("CSVData-",arg.year + 1,"-1-5")
+                csv.month.name <- paste("CSVData-",arg.year + 1,"-1-5",
+                                        sep = "")
         }else{
                 csv.month.name <- paste("CSVData-",arg.year,"-",arg.month,"-5",
                                         sep = "")
@@ -88,7 +89,8 @@ InputData <- function(arg.year = 2016, arg.month = 2) {
         ls.value.data <- list()
         for(i in arg.month){
                 if(i == 13){
-                        csv.file.name <- paste("simujijin",arg.year + 1,"-1-5.csv")
+                        csv.file.name <- paste("simujijin",arg.year + 1,"-1-5.csv", 
+                                               sep = "")
                 }else{
                         csv.file.name <- paste("simujijin",arg.year,"-",i,"-5",".csv", 
                                                sep = "")
