@@ -1,12 +1,15 @@
 library(ggplot2)
 
-df1 <- ls_value$`DF_processed.CSVData-2016-9-5`[2:4, c("dist.x", "dist.y", "modified.flag")]
-df1$modified.flag[3] <- TRUE
+df1 <- ls_value$`DF_processed.CSVData-2017-2-5`[2:4, c("dist.x", "dist.y", "modified.flag")]
+df1$modified.flag <- FALSE
+df1$modified.flag[1:2] <- TRUE
 
-df2 <- ls_value$`DF_processed.CSVData-2016-8-5`[2:4, c("dist.x", "dist.y", "modified.flag")]
-df2$modified.flag[3] <- TRUE
+df2 <- ls_value$`DF_processed.CSVData-2017-3-5`[2:4, c("dist.x", "dist.y", "modified.flag")]
+df2$modified.flag <- FALSE
+df2$modified.flag[1:2] <- TRUE
 
-df3 <- ls_value$`DF_processed.CSVData-2016-7-5`[2:4, c("dist.x", "dist.y", "modified.flag")]
+
+df3 <- ls_value$`DF_processed.CSVData-2017-4-5`[2:4, c("dist.x", "dist.y", "modified.flag")]
 
 df <- rbind(df1, df2, df3)
 
