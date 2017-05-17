@@ -76,7 +76,7 @@ GetFundNameVector <- function(arg.ls.value, arg.year = 2016, arg.month = 2) {
         
 }        
 
-InputData <- function(arg.year = 2016, arg.month = 2) {
+InputData <- function(arg.fundtype, arg.year = 2016, arg.month = 2) {
         # 读取数据文件，选取满足要求的记录存放到全局列表中
         #
         # Args:
@@ -89,10 +89,13 @@ InputData <- function(arg.year = 2016, arg.month = 2) {
         ls.value.data <- list()
         for(i in arg.month){
                 if(i == 13){
-                        csv.file.name <- paste("simujijin",arg.year + 1,"-1-5.csv", 
+                        csv.file.name <- paste(arg.fundtype,
+                                               arg.year + 1,
+                                               "-1-5.csv", 
                                                sep = "")
                 }else{
-                        csv.file.name <- paste("simujijin",arg.year,"-",i,"-5",".csv", 
+                        csv.file.name <- paste(arg.fundtype,
+                                               arg.year,"-",i,"-5",".csv", 
                                                sep = "")
                 }
                 
@@ -126,4 +129,43 @@ InputData <- function(arg.year = 2016, arg.month = 2) {
         
         ls.value.data[["month_range"]] <- arg.month
         return(ls.value.data)
+}
+
+GetIndividualFundReturn <- function(arg.year = 2016, arg.month = 2,
+                                    arg.fund.name, arg.ls.value, arg.quantile) {
+        
+        # 2.read csv files to get data
+        #
+        # Args:
+        #   arg.year: 绘画针对的年份，以单向量形式输入
+        #   arg.month: 绘画针对的月份范围，以向量形式输入
+        #
+        # Returns:
+        #   返回ls_value列表中的保存指定时间的csv数据的数据框元素的名称
+        
+        
+        # browser()
+        result <- NULL
+        for (i in arg.month){
+                
+                csv.month.name <- GetCSVMonthName(arg.year, 
+                                                  arg.month = i)
+                
+                csv.data <- arg.ls.value[[csv.month.name]]
+                
+                if(arg.quantile == 0){
+                        #browser()
+                        # result[i - 1] <- csv.data[csv.data[,1] == arg.fund.name,2]
+                        result <- c(result, csv.data[csv.data[,1] == arg.fund.name,2])
+                }else{
+                        # browser()
+                        # result[i - 1] <- quantile(csv.data[,2], arg.quantile)
+                        result <- c(result, quantile(csv.data[,2], arg.quantile))
+                }
+                
+                
+        }
+        
+        return(result)
+        
 }
