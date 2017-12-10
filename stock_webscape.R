@@ -1,12 +1,14 @@
 
+rm(list = ls())
 
 library(jsonlite)
 
-url.upper.part <- "http://dc.simuwang.com/Ranking/get.html?page="
+
+url.upper.part <- "http://dc.simuwang.com/ranking/get?page="
 url.down.part <- "&condition=fund_type%3A1%2C6%2C4%2C3%2C8%2C2%3Bret%3A10%3Brating_year%3A1%3Bstrategy%3A1%3Bistiered%3A0%3Bcompany_type%3A1%3Bsort_name%3Aprofit_col2%3Bsort_asc%3Adesc%3Bkeyword%3A"
 
 
-for(i in 1:94){
+for(i in 1:83){
         url <- paste0(url.upper.part, i ,url.down.part)
         #browser()
         json.data <- fromJSON(url)
@@ -30,9 +32,8 @@ result$fund_short_name <- unlist(regularized.name)
 
 View(result)
 
-setwd("D:\\MyR\\jijin")
 
-write.csv(result, "simu201705.csv")
+write.csv(result, "D:\\MyR\\jijin\\simu201711.csv")
 
 
 

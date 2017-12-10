@@ -8,6 +8,11 @@
 library(RColorBrewer)
 library(dplyr, warn.conflicts = FALSE)
 
+#### Source files inputting Part
+setwd("d:/MyR/jijin")
+
+source("input_and_preprocess_data.R")
+
 
 #### Function Definition Part
 DesignPlotLayout <- function(arg.month){
@@ -31,9 +36,9 @@ DesignPlotLayout <- function(arg.month){
         # } else  {
         #         if (file.exists("zhaobankuaizhishu2017.csv")){
         #如果记录赵基金持仓板块涨幅的文件存在，则要多描绘一个图
-        plot.layout.matrix <- matrix(c(1, 1, 1, 5, 5, 5, 
-                                       2, 2, 2, 4, 4, 4,
-                                       3, 3, 3, 6, 6, 6), 
+        plot.layout.matrix <- matrix(c(1, 1,  5, 5, 
+                                       2, 2,  4, 4,
+                                       3, 3,  6, 6), 
                                      nr = 3,
                                      byrow = TRUE)
         #         } else {
@@ -217,7 +222,7 @@ DrawMonthValueCurve <- function(arg.ylim.upper,
         # Profits for specified funds
         zhao.return <- as.numeric(csv.data[csv.data[,1] == "赤子之心价值",2])
         zhanbo.return <- as.numeric(csv.data[csv.data[,1] == "展博1期",2])
-        yunfeng.return <- as.numeric(csv.data[csv.data[,1] == "华润信托昀沣4号集合资金信托计划",2]) 
+        jinglin.return <- as.numeric(csv.data[csv.data[,1] == "景林稳健",2]) 
         qing.return <- as.numeric(csv.data[csv.data[,1] == "清水源1号",2]) 
         
         # browser()
@@ -231,7 +236,7 @@ DrawMonthValueCurve <- function(arg.ylim.upper,
                                         lcol = selected.color, 
                                         zhao.return,
                                         zhanbo.return,
-                                        yunfeng.return, 
+                                        jinglin.return, 
                                         qing.return,
                                         xy.scale,
                                         arg.x.slope, 
@@ -244,7 +249,7 @@ DrawMonthValueCurve <- function(arg.ylim.upper,
 
 ##  3-3 Draw the monthly return density curve
 
-density_mean_sd <- function(x, lwd, lcol, zhao, zhanbo,yunfeng, qing, arg_XYscale,
+density_mean_sd <- function(x, lwd, lcol, zhao, zhanbo,jinglin, qing, arg_XYscale,
                             arg.x.slope, arg.y.slope, arg.dist.lowthreshold){
         
         #draw density Curve
@@ -268,20 +273,20 @@ density_mean_sd <- function(x, lwd, lcol, zhao, zhanbo,yunfeng, qing, arg_XYscal
         seq_median <- length(r$x[r$x < x_median]) + 1
         seq_zhao <- length(r$x[r$x < zhao]) + 1
         seq_zhanbo <- length(r$x[r$x < zhanbo]) + 1
-        seq_yunfeng <- length(r$x[r$x < yunfeng]) + 1
+        seq_jinglin <- length(r$x[r$x < jinglin]) + 1
         seq_qing <- length(r$x[r$x < qing]) + 1
         
         ## Prepare data frame for line drawing and text labelling  
         # browser()
         DF_lineText <- data.frame(linename = c("mean","sd","mean + sd", "median",
-                                               "zhao","zhanbo","yunfeng","qing"),
+                                               "zhao","zhanbo","jinglin","qing"),
                                   linex = c(mean(x),
                                             sd(x),
                                             mean(x) + sd(x), 
                                             median(x), 
                                             zhao, 
                                             zhanbo,
-                                            yunfeng,
+                                            jinglin,
                                             qing),
                                   liney = c(r$y[seq_mean],
                                             0,
@@ -290,7 +295,7 @@ density_mean_sd <- function(x, lwd, lcol, zhao, zhanbo,yunfeng, qing, arg_XYscal
                                             #max(r$y), 
                                             r$y[seq_zhao],
                                             r$y[seq_zhanbo],
-                                            r$y[seq_yunfeng],
+                                            r$y[seq_jinglin],
                                             r$y[seq_qing]),
                                   stringsAsFactors = FALSE
         )
@@ -328,7 +333,7 @@ func_process_line_text <- function(arg_DF_lineText){
         DF_result$col = "brown"
         DF_result[DF_result$linename == "zhao","col"] <- "black"
         DF_result[DF_result$linename == "zhanbo","col"] <- "darkcyan"
-        DF_result[DF_result$linename == "yunfeng","col"] <- "blue"
+        DF_result[DF_result$linename == "jinglin","col"] <- "blue"
         DF_result[DF_result$linename == "qing","col"] <- "darkgreen"
         
         ##lty
@@ -339,7 +344,7 @@ func_process_line_text <- function(arg_DF_lineText){
         DF_result$textcex <- 1
         DF_result[DF_result$linename == "zhao","textcex"] <- 0.9
         DF_result[DF_result$linename == "zhanbo","textcex"] <- 0.9
-        DF_result[DF_result$linename == "yunfeng","textcex"] <- 0.9
+        DF_result[DF_result$linename == "jinglin","textcex"] <- 0.9
         DF_result[DF_result$linename == "qing","textcex"] <- 0.9
         
         ##textpos
@@ -366,9 +371,9 @@ func_process_line_text <- function(arg_DF_lineText){
                 paste('展博1期基金收益率 = ',round(linex_zhanbo, digits = 2), '%', 
                       sep = '') 
         
-        linex_yunfeng <- DF_result[DF_result$linename == "yunfeng","linex"]
-        DF_result[DF_result$linename == "yunfeng","textlabel"] <-
-                paste('昀沣4号基金收益率 = ',round(linex_yunfeng, digits = 2), '%', 
+        linex_jinglin <- DF_result[DF_result$linename == "jinglin","linex"]
+        DF_result[DF_result$linename == "jinglin","textlabel"] <-
+                paste('景林稳健基金收益率 = ',round(linex_jinglin, digits = 2), '%', 
                       sep = '') 
         
         linex_qing <- DF_result[DF_result$linename == "qing","linex"]
@@ -538,11 +543,11 @@ func_modify_text_position <- function(arg_DF_processed, arg.dist.lowthreshold){
         ## in  density_mean_sd function
         #dist_lowthreshold <- 1
         
-        dist_to_median_threshold <- 0.24
+        dist_to_median_threshold <- 0.05
         
-        LargeStep <- 0.018
-        MiddleStep <- LargeStep * 2 / 3
-        SmallStep <- LargeStep * 1 / 4
+        LargeStep <- 0.004
+        MiddleStep <- LargeStep * 7 / 8
+        SmallStep <- LargeStep * 3 / 4
         #browser()
         for (i in 2:(nrow(tbl_df_text_position) - 1)) {
                 if(tbl_df_text_position$dist[i] < arg.dist.lowthreshold){
@@ -616,7 +621,7 @@ func_draw_line_text <- function(arg_DF_processed){
                 
                 #对于中值，线与文字不再公用x坐标，文字稍微左移               
                 if(rowlinename == "median"){
-                        text(linex - 8,texty,labels = rowlabel,pos = rowpos, 
+                        text(linex - 12,texty,labels = rowlabel,pos = rowpos, 
                              font = 3, 
                              cex = rowcex,
                              col = rowcol)  
@@ -673,7 +678,7 @@ DrawBoardIndex <- function(filename, boardindexname, titlecontent,legendx,
         bar_y <- as.numeric(Board_Index_array)
         
         location_bar_x = bar_x
-        location_bar_y = bar_y + sign(bar_y) * 2
+        location_bar_y = bar_y + sign(bar_y) * 3
         location_bar_y[location_bar_y == 0] <- 3
         #browser()
         
@@ -747,25 +752,21 @@ DrawMonthValueMovingCurve <- function(ls_value_input, arg.year = 2016,
 
 ######Execution Part
 
-# dev.new()
-setwd("d:/MyR/jijin")
-
-source("input_and_preprocess_data.R")
 
 
 ##Specify the year and month range to draw plots
 ##Usually only numeric_Specied_Month need to be changed
 
 numeric_Specied_Year <- 2017
-numeric_Specied_Month <- 2:5  ## change here every time!
+numeric_Specied_Month <- 3:11  ## change here every time!
 
 
 ##The following only affects all curve figures
 # numeric_Specied_ylim_upper <- 0.25 ## It may be needed to change here !
 
 ##The following only affects the last curve figure
-numeric_Specied_xlim_down <- -20 ## It may be needed to change here !
-numeric_Specied_xlim_upper <- 20 ## It may be needed to change here !
+numeric_Specied_xlim_down <- -40 ## It may be needed to change here !
+numeric_Specied_xlim_upper <- 50 ## It may be needed to change here !
 
 ##plan how to place plots according to the input month vector
 DesignPlotLayout(numeric_Specied_Month) 
@@ -785,42 +786,48 @@ ls_value <- InputData("simujijin",
 ## 这里还需要人工确定标签是否重叠，事实上应该可以判断标签对应的外围矩形框是否重叠而由电脑自动
 ## 完成判断及调整工作---留待后续修改算法
 
-numeric_Specied_ylim_upper <- 0.18 ## It may be needed to change here !
+
 ls_value <- DrawAllMonthCurve(arg.ls.value = ls_value,
                               arg.year = numeric_Specied_Year,
                               numeric_Specied_Month,
                               arg.x.slope = 0,
                               arg.y.slope = 1,
-                              arg.dist.lowthreshold = 2,
-                              arg.ylim.upper = numeric_Specied_ylim_upper)
+                              arg.dist.lowthreshold = 3.2,
+                              arg.ylim.upper = 0.045)
 
 #browser()
 #大盘指数: Manual action to the coordinates of legend may be needed.
+
+month.number <- length(numeric_Specied_Month)
+if(month.number > 6){
+        month.number <- 6
+}
+
 DrawBoardIndex("stockdapanzhishu2017.csv",
-               c("上证综指999999","创业板399006","地产指数399952","港股通精选100指数CES100"),
+               c("上证综指999999","创业板399006","港股通精选100指数CES100"),
                "参考指数涨幅(从2017年初开始)",
-               6, 22,
+               6, 45,
                "steelblue",
-               monthnumber = 4,
-               board.number = 4,
-               ylim.lower = -10,
-               ylim.upper = 20)
+               monthnumber = month.number,
+               board.number = 3,
+               ylim.lower = -20,
+               ylim.upper = 45)
 # plot(1,1)
+
+
 
 #月收益率曲线移动轨迹图, The input months length can be larger than 3
 ##If there is only one month as input, this part need not to be executed.
 
-numeric_Specied_Month_for_Moving_Curve <- numeric_Specied_Month
-#numeric_Specied_Month_for_Moving_Curve <- c(2,4,6)
+# numeric_Specied_Month_for_Moving_Curve <- numeric_Specied_Month
+numeric_Specied_Month_for_Moving_Curve <- c(3,7,11)
 
-numeric_Specied_ylim_upper <- 0.24 ## It may be needed to change here !
 
 length_Specied_Month <- length(numeric_Specied_Month_for_Moving_Curve)
 if(length_Specied_Month > 1){
         DrawMonthValueMovingCurve(ls_value, numeric_Specied_Year,
                                   numeric_Specied_Month_for_Moving_Curve,
-                                  numeric_input_ylim_upper =
-                                          numeric_Specied_ylim_upper,
+                                  numeric_input_ylim_upper = 0.16,
                                   numeric_Specied_xlim_down,
                                   numeric_Specied_xlim_upper)
 }
@@ -832,15 +839,15 @@ if(length(numeric_Specied_Month) > 2){
         if(file.exists("stockzhaobankuaizhishu2017.csv")){
                 #如果记录赵基金持仓板块涨幅的文件存在，则要多描绘一个图，否则省略
                 DrawBoardIndex("stockzhaobankuaizhishu2017.csv",
-                               c("能源指数399908","材料指数399909","医药指数399913",
+                               c("高端装备000097","医药指数399913",
                                  "消费指数399912" ),
                                "机构推荐配置涨幅(从2017年初开始)",
-                               6, 22,
+                               6, 75,
                                "springgreen4",
-                               monthnumber = 4,
-                               board.number = 4,
-                               ylim.lower = -5,
-                               ylim.upper = 20)
+                               monthnumber = month.number,
+                               board.number = 3,
+                               ylim.lower = -20,
+                               ylim.upper = 70)
         }
 }
 

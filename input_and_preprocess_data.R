@@ -121,7 +121,11 @@ InputData <- function(arg.fundtype, arg.year = 2016, arg.month = 2) {
                 ls.value.data[[month.index]] <- fund.data
                 
                 min.value <- min(as.numeric(fund.data[,2]),min.value)
-                max.value <- max(as.numeric(fund.data[,2]),max.value)
+                # max.value <- max(as.numeric(fund.data[,2]),max.value)
+                
+                # min.value <- quantile(c(as.numeric(fund.data[,2]),min.value), probs = 0.005)
+                max.value <- quantile(c(as.numeric(fund.data[,2]),max.value), probs = 0.995)
+                
         }
         
         ls.value.data[["min_data"]] <- min.value

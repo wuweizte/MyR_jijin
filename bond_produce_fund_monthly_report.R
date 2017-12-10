@@ -21,9 +21,9 @@ DesignPlotLayout <- function(){
         #   没有输出，直接就是执行layout函数影响后续绘图
         
 
-        plot.layout.matrix <- matrix(c(1, 1, 5, 5, 
-                                       2, 2, 4, 4,
-                                       3, 3, 6, 7), 
+        plot.layout.matrix <- matrix(c(1, 1,1, 5, 5,5,5, 
+                                       2, 2,2, 4, 4,4,4,
+                                       3, 3,3, 6, 6,7,7), 
                                      nr = 3,
                                      byrow = TRUE)
         
@@ -145,7 +145,7 @@ DrawMonthValueCurve <- function(arg.ylim.upper,
         plot(month.return, 
              type = "n", 
              ylim = c(0, arg.ylim.upper),
-             xlim = c(min.return + 5, max.return + 3), 
+             xlim = c(min.return , max.return + 10), 
              axes = FALSE,
              main = plot.main.name,
              xlab = '年收益率(%)',
@@ -523,9 +523,9 @@ func_modify_text_position <- function(arg_DF_processed, arg.dist.lowthreshold){
         
         dist_to_median_threshold <- 0.24
         
-        LargeStep <- 0.05
-        MiddleStep <- LargeStep * 3/32
-        SmallStep <- LargeStep/32
+        LargeStep <- 0.02
+        MiddleStep <- LargeStep * 3/4
+        SmallStep <- LargeStep/4
         #browser()
         for (i in 2:(nrow(tbl_df_text_position) - 1)) {
                 if(tbl_df_text_position$dist[i] < arg.dist.lowthreshold){
@@ -744,11 +744,11 @@ source("input_and_preprocess_data.R")
 ##Usually only numeric_Specied_Month need to be changed
 
 numeric_Specied_Year <- 2017
-numeric_Specied_Month <- 3:5  ## change here every time!
+numeric_Specied_Month <- 3:11  ## change here every time!
 
 
 ##The following only affects all curve figures
-numeric_Specied_ylim_upper <- 0.54 ## It may be needed to change here !
+# numeric_Specied_ylim_upper <- 0.4 ## It may be needed to change here !
 
 ##The following only affects the last curve figure
 numeric_Specied_xlim_down <- -10 ## It may be needed to change here !
@@ -777,17 +777,23 @@ ls_value <- DrawAllMonthCurve(arg.ls.value = ls_value,
                               numeric_Specied_Month,
                               arg.x.slope = 0,
                               arg.y.slope = 1,
-                              arg.dist.lowthreshold = 0.3,
-                              arg.ylim.upper = numeric_Specied_ylim_upper)
+                              arg.dist.lowthreshold = 0.4,
+                              arg.ylim.upper = 0.22)
+
+month.number <- length(numeric_Specied_Month)
+if(month.number > 6){
+        month.number <- 6
+}
+
 
 #browser()
 #大盘指数: Manual action to the coordinates of legend may be needed.
 DrawBoardIndex("bonddapanzhishu2017.csv",
                c("中证国债","中证金融债","中证企业债"),
                "板块指数涨幅(从2017年初开始)",
-               2.5, 6,
+               5, 7,
                "steelblue",
-               monthnumber = 3,
+               monthnumber = month.number,
                board.number = 3,
                ylim.lower = -3,
                ylim.upper = 6,
@@ -797,28 +803,26 @@ DrawBoardIndex("bonddapanzhishu2017.csv",
 #月收益率曲线移动轨迹图, The input months length can be larger than 3
 ##If there is only one month as input, this part need not to be executed.
 
-numeric_Specied_Month_for_Moving_Curve <- numeric_Specied_Month
-
+# numeric_Specied_Month_for_Moving_Curve <- numeric_Specied_Month
+numeric_Specied_Month_for_Moving_Curve <- c(3,7,11)
 
 DrawMonthValueMovingCurve(ls_value, numeric_Specied_Year,
                           numeric_Specied_Month_for_Moving_Curve,
-                          numeric_input_ylim_upper =
-                                  numeric_Specied_ylim_upper,
+                          numeric_input_ylim_upper = 0.54,
                           numeric_Specied_xlim_down,
                           numeric_Specied_xlim_upper)
 
 
-#赵持仓板块指数: Manual action to the coordinates of legend may be needed.
 
 DrawBoardIndex("bondshibor2017.csv",
                c("SHIBOR 3月" ),
                "SHIBOR 涨幅(从2017年初开始)",
-               2, 75,
+               4, 90,
                "springgreen4",
-               monthnumber = 3,
+               monthnumber = month.number,
                board.number = 1,
                ylim.lower = -5,
-               ylim.upper = 70,
+               ylim.upper = 80,
                arg.ylabel.factor = 4)
 
 ##################
@@ -826,10 +830,10 @@ DrawBoardIndex("bondshibor2017.csv",
 DrawBoardIndex("bondhuilv2017.csv",
                c("美元兑人民币(CFETS)" ),
                "汇率涨幅(从2017年初开始)",
-               2, 6,
+               4, 9,
                "springgreen4",
-               monthnumber = 3,
+               monthnumber = month.number,
                board.number = 1,
-               ylim.lower = -3,
-               ylim.upper = 6,
+               ylim.lower = -8,
+               ylim.upper = 8,
                arg.ylabel.factor = 0.5)
