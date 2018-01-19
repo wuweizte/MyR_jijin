@@ -24,7 +24,7 @@ source("input_and_preprocess_data.R")
 ##Usually only numeric_Specied_Month need to be changed
 
 numeric_Specied_Year <- 2017
-numeric_Specied_Month <- 2:11  ## change here every time!
+numeric_Specied_Month <- 5:13  ## change here every time!
 draw.label.month <- numeric_Specied_Month - 1  
 
 ls_value <- InputData("simujijin",
@@ -79,7 +79,7 @@ ylim.lower <- min(c(ts.result.chi,
 
 xlim.upper <- max(draw.label.month) + 1
 
-xlim.lower <- 1
+xlim.lower <- min(draw.label.month)
 
 
 
@@ -114,87 +114,157 @@ axis(2, las = 1, at = y.axis.grid.points,
 
 
 
-lines(ts.result.chi, type = "o", col = "blue")
-text(max(draw.label.month) + 0.65, tail(ts.result.chi, 1) + 1 , 
+lines(  x = draw.label.month,
+        y = ts.result.chi, 
+        type = "o", 
+        col = "blue")
+text(max(draw.label.month) + 0.75, tail(ts.result.chi, 1) + 1 , 
      "赤子之心价值（赵丹阳）", cex = 0.7, col = "blue")
-not.show.label <- c(1)
-text(draw.label.month[not.show.label], 
-     ts.result.chi[draw.label.month[not.show.label]] - 0.5, 
-     paste0(round(ts.result.chi[draw.label.month[not.show.label]], digits = 2),"%"),
-     cex = 0.7,
-     col = "blue") 
-show.label <- -c(not.show.label)
-text(draw.label.month[show.label],
-     ts.result.chi[draw.label.month[show.label]] + 0.8,
-     paste0(round(ts.result.chi[draw.label.month[show.label]], digits = 2),"%"),
+text(draw.label.month,
+     ts.result.chi + 1.5,
+     paste0(round(ts.result.chi, digits = 2),"%"),
      cex = 0.7,
      col = "blue")
 
-
-lines(ts.result.zhan, type = "o")
-text(max(draw.label.month) + 0.55, tail(ts.result.zhan, 1) , 
+#####################################
+lines(x = draw.label.month,
+      y = ts.result.zhan, 
+      type = "o")
+text(max(draw.label.month) + 0.65, tail(ts.result.zhan, 1) , 
      "展博1期（陈锋）", cex = 0.7)
-not.show.label <- -c(1:2,9,10)
-text(draw.label.month[not.show.label], 
-     ts.result.zhan[draw.label.month[not.show.label]] - 0.8, 
-     paste0(round(ts.result.zhan[draw.label.month[not.show.label]], digits = 2),"%"),
+
+df <- data.frame(y = seq_along(draw.label.month), 
+                 x = draw.label.month)
+
+df.notshow <- df[!(df$x %in% c(1:3,7,8,9,10)), ] 
+
+text(df.notshow$x,
+     ts.result.zhan[df.notshow$y] - 0.8,
+     paste0(round(ts.result.zhan[df.notshow$y], digits = 2),"%"),
      cex = 0.7)
-# text(draw.label.month[c(1:2)], 
-#      ts.result.zhan[draw.label.month[c(1:2)]] + 1.5, 
-#      paste0(round(ts.result.zhan[draw.label.month[c(1:2)]], digits = 2),"%"),
-#      cex = 0.7)
-     
-lines(ts.result.jinglin, type = "o", col = "brown")
-text(max(draw.label.month) + 0.58, tail(ts.result.jinglin, 1) , 
+
+df.show <- df[(df$x %in% c(7)), ] 
+
+text(df.show$x,
+     ts.result.zhan[df.show$y] + 1.2,
+     paste0(round(ts.result.zhan[df.show$y], digits = 2),"%"),
+     cex = 0.7)
+
+##################################
+lines(x = draw.label.month,
+      y = ts.result.jinglin, 
+      type = "o", 
+      col = "brown")
+text(max(draw.label.month) + 0.68, tail(ts.result.jinglin, 1) , 
      "景林稳健（高云程）", col = "brown", cex = 0.7)
 
 text(draw.label.month,
-     ts.result.jinglin[draw.label.month] + 0.8,
-     paste0(round(ts.result.jinglin[draw.label.month], digits = 2),"%"),
+     ts.result.jinglin + 1.2,
+     paste0(round(ts.result.jinglin, digits = 2),"%"),
      col = "brown", cex = 0.7)
 
+##########################
 
-
-lines(ts.result.qing, type = "o", col = "purple")
-text(max(draw.label.month) + 0.6, tail(ts.result.qing, 1)  , 
+lines(x = draw.label.month,
+      y = ts.result.qing, 
+      type = "o", 
+      col = "purple")
+text(max(draw.label.month) + 0.7, tail(ts.result.qing, 1) + 0.5  , 
      "清水源1号（张小川）", col = "purple", cex = 0.7)
-not.show.label <- -c(1:2)
-text(draw.label.month[not.show.label],
-     ts.result.qing[draw.label.month[not.show.label]] + 0.8,
-     paste0(round(ts.result.qing[draw.label.month[not.show.label]], digits = 2),"%"),
-     col = "purple", cex = 0.7)
-show.label <- 2
-text(draw.label.month[show.label],
-     ts.result.qing[draw.label.month[show.label]] - 0.5,
-     paste0(round(ts.result.qing[draw.label.month[show.label]], digits = 2),"%"),
-     col = "purple", cex = 0.7)
+# text(draw.label.month,
+#      ts.result.qing + 1.2,
+#      paste0(round(ts.result.qing, digits = 2),"%"),
+#      col = "purple", cex = 0.7)
 
-lines(ts.result.shang, type = "o", col = "darkgreen")
-text(max(draw.label.month) + 0.6, tail(ts.result.shang, 1) , 
+df <- data.frame(y = seq_along(draw.label.month), 
+                 x = draw.label.month)
+
+df.notshow <- df[!(df$x %in% c(5,10)), ] 
+
+text(df.notshow$x,
+     ts.result.qing[df.notshow$y] + 1.2,
+     paste0(round(ts.result.qing[df.notshow$y], digits = 2),"%"),
+     cex = 0.7,
+     col = "purple")
+
+df.show <- df[(df$x %in% c(5,10)), ] 
+
+text(df.show$x,
+     ts.result.qing[df.show$y] - 1,
+     paste0(round(ts.result.qing[df.show$y], digits = 2),"%"),
+     cex = 0.7,
+     col = "purple")
+
+
+################################
+
+lines(x = draw.label.month,
+      y = ts.result.shang, 
+      type = "o", 
+      col = "darkgreen")
+text(max(draw.label.month) + 0.7, tail(ts.result.shang, 1) - 1 , 
      "上善若水3期（侯安扬）", col = "darkgreen", cex = 0.7)
-not.show.label <- -c(4,10)
-text(draw.label.month[not.show.label],
-     ts.result.shang[draw.label.month[not.show.label]] - 0.8,
-     paste0(round(ts.result.shang[draw.label.month[not.show.label]], digits = 2),"%"),
-     col = "darkgreen", cex = 0.7)
-show.label <- -not.show.label
-text(draw.label.month[show.label],
-     ts.result.shang[draw.label.month[show.label]] + 0.5,
-     paste0(round(ts.result.shang[draw.label.month[show.label]], digits = 2),"%"),
-     col = "darkgreen", cex = 0.7)
+# not.show.label <- -c(4,10)
+# text(draw.label.month[not.show.label],
+#      ts.result.shang[draw.label.month[not.show.label]] - 1.2,
+#      paste0(round(ts.result.shang[draw.label.month[not.show.label]], digits = 2),"%"),
+#      col = "darkgreen", cex = 0.7)
+
+df <- data.frame(y = seq_along(draw.label.month), 
+                 x = draw.label.month)
+
+df.notshow <- df[!(df$x %in% c(4,10)), ] 
+
+text(df.notshow$x,
+     ts.result.shang[df.notshow$y] - 1.2,
+     paste0(round(ts.result.shang[df.notshow$y], digits = 2),"%"),
+     cex = 0.7,
+     col = "darkgreen")
 
 
-lines(ts.result.quantile, type = "o", col = "red", lty = "dashed", lwd = 2)
-text(max(draw.label.month) + 0.65, tail(ts.result.quantile, 1) - 1.5 , 
+# show.label <- -not.show.label
+# text(draw.label.month[show.label],
+#      ts.result.shang[draw.label.month[show.label]] + 1,
+#      paste0(round(ts.result.shang[draw.label.month[show.label]], digits = 2),"%"),
+#      col = "darkgreen", cex = 0.7)
+
+df.show <- df[(df$x %in% c(10)), ] 
+
+text(df.show$x,
+     ts.result.shang[df.show$y] + 1,
+     paste0(round(ts.result.shang[df.show$y], digits = 2),"%"),
+     cex = 0.7,
+     col = "darkgreen")
+
+
+######################################
+
+lines(x = draw.label.month,
+      y = ts.result.quantile, 
+      type = "o", 
+      col = "red", 
+      lty = "dashed", 
+      lwd = 2)
+text(max(draw.label.month) + 0.75, tail(ts.result.quantile, 1) - 1 , 
      "3000只股票型私募基金的\n80%业绩分位点", col = "red", cex = 0.7)
-not.show.label <- -c(7:10)
-text(draw.label.month[not.show.label], 
-     ts.result.quantile[draw.label.month[not.show.label]] + 0.8, 
-     paste0(round(ts.result.quantile[draw.label.month[not.show.label]], digits = 2),"%"), 
-     col = "red", cex = 0.7)
 
-show.label <- -c(not.show.label)
-text(draw.label.month[show.label], 
-     ts.result.quantile[draw.label.month[show.label]] - 0.8, 
-     paste0(round(ts.result.quantile[draw.label.month[show.label]], digits = 2),"%"), 
-     col = "red", cex = 0.7)
+# text(draw.label.month,
+#      ts.result.quantile - 1.2,
+#      paste0(round(ts.result.quantile, digits = 2),"%"),
+#      col = "red", cex = 0.7)
+
+df.notshow <- df[!(df$x %in% c(5:6)), ] 
+
+text(df.notshow$x,
+     ts.result.quantile[df.notshow$y] - 1.2,
+     paste0(round(ts.result.quantile[df.notshow$y], digits = 2),"%"),
+     cex = 0.7,
+     col = "red")
+
+df.show <- df[(df$x %in% c(5:6)), ] 
+
+text(df.show$x,
+     ts.result.quantile[df.show$y] + 1.2,
+     paste0(round(ts.result.quantile[df.show$y], digits = 2),"%"),
+     cex = 0.7,
+     col = "red")

@@ -30,7 +30,7 @@ View(result)
 
 setwd("D:\\MyR\\jijin")
 
-write.csv(result, "bondsimu201711.csv")
+write.csv(result, "bondsimu201712.csv")
 
 
 

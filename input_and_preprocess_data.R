@@ -118,7 +118,7 @@ InputData <- function(arg.fundtype, arg.year = 2016, arg.month = 2) {
                 
                 fund.data <- ls.value.data[[month.index]]
                 fund.data <- fund.data[fund.data[,1] %in% accepted.fund.name,]
-                ls.value.data[[month.index]] <- fund.data
+                ls.value.data[[month.index]] <- fund.data[order(fund.data[,1]),]
                 
                 min.value <- min(as.numeric(fund.data[,2]),min.value)
                 # max.value <- max(as.numeric(fund.data[,2]),max.value)

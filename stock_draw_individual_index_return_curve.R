@@ -9,6 +9,7 @@ rm(list = ls())
 
 #### Library Quoting Part
 ##library(forecast)
+library(lubridate)
 
 #### Function Definition Part
 
@@ -24,7 +25,7 @@ source("input_and_preprocess_data.R")
 ##Usually only numeric_Specied_Month need to be changed
 
 numeric_Specied_Year <- 2017
-numeric_Specied_Month <- 2:11  ## change here every time!
+numeric_Specied_Month <- 5:13  ## change here every time!
 draw.label.month <- numeric_Specied_Month - 1 
 
 # ls_value <- InputData(numeric_Specied_Year,numeric_Specied_Month)
@@ -45,9 +46,14 @@ ts.result.jinglin <- GetIndividualFundReturn(numeric_Specied_Year,
                                        "景林稳健",
                                        ls_value, 0)
 
-ts.result.zhongzheng500 <- zhishu[zhishu$zhishu == "zhongzheng500",  "zhangfu"]
-ts.result.hushen300 <- zhishu[zhishu$zhishu == "hushen300",  "zhangfu"]
-ts.result.shenzhenghongli <- zhishu[zhishu$zhishu == "shenzhenghongli",  "zhangfu"]
+ts.result.zhongzheng500 <- zhishu[(zhishu$zhishu == "zhongzheng500" & 
+                                     month(as.Date(zhishu$date)) %in% draw.label.month),  "zhangfu"]
+
+ts.result.hushen300 <- zhishu[(zhishu$zhishu == "hushen300" & 
+                                 month(as.Date(zhishu$date)) %in% draw.label.month),  "zhangfu"]
+
+ts.result.shenzhenghongli <- zhishu[(zhishu$zhishu == "shenzhenghongli" & 
+                                       month(as.Date(zhishu$date)) %in% draw.label.month),  "zhangfu"]
 
 ylim.upper <- max(c(ts.result.chi, 
                     ts.result.jinglin,
@@ -59,7 +65,7 @@ ylim.lower <- min(c(ts.result.chi,
 
 xlim.upper <- max(draw.label.month) + 0.85
 
-xlim.lower <- 1
+xlim.lower <- min(draw.label.month)
 
 
 
@@ -94,64 +100,120 @@ axis(2, las = 1, at = y.axis.grid.points,
 
 
 
-lines(ts.result.chi, type = "o", col = "blue")
-text(max(draw.label.month) + 0.55, tail(ts.result.chi, 1) , 
+lines(x = draw.label.month,
+      y = ts.result.chi, 
+      type = "o", 
+      col = "blue")
+text(max(draw.label.month) + 0.7, tail(ts.result.chi, 1) , 
      "赤子之心价值（赵丹阳）", cex = 0.7, col = "blue")
-not.show.label <- -c(2,4,6)
-text(draw.label.month[not.show.label], 
-     ts.result.chi[draw.label.month[not.show.label]] - 0.9, 
-     paste0(round(ts.result.chi[draw.label.month[not.show.label]], digits = 2),"%"),
+# not.show.label <- -c(2,4,6)
+# text(draw.label.month[not.show.label], 
+#      ts.result.chi[draw.label.month[not.show.label]] - 1.2, 
+#      paste0(round(ts.result.chi[draw.label.month[not.show.label]], digits = 2),"%"),
+#      cex = 0.7,
+#      col = "blue") 
+# show.label <- c(4,6)
+# text(draw.label.month[show.label],
+#      ts.result.chi[draw.label.month[show.label]] + 1,
+#      paste0(round(ts.result.chi[draw.label.month[show.label]], digits = 2),"%"),
+#      cex = 0.7,
+#      col = "blue")
+
+df <- data.frame(y = seq_along(draw.label.month), 
+                 x = draw.label.month)
+
+df.notshow <- df[!(df$x %in% c(4,6,10)), ] 
+
+text(df.notshow$x,
+     ts.result.chi[df.notshow$y] - 1.2,
+     paste0(round(ts.result.chi[df.notshow$y], digits = 2),"%"),
      cex = 0.7,
-     col = "blue") 
-show.label <- c(4,6)
-text(draw.label.month[show.label],
-     ts.result.chi[draw.label.month[show.label]] + 0.5,
-     paste0(round(ts.result.chi[draw.label.month[show.label]], digits = 2),"%"),
+     col = "blue")
+
+df.show <- df[(df$x %in% c(4,6,10)), ] 
+
+text(df.show$x,
+     ts.result.chi[df.show$y] + 1.2,
+     paste0(round(ts.result.chi[df.show$y], digits = 2),"%"),
      cex = 0.7,
      col = "blue")
 
 
-lines(ts.result.jinglin, type = "o", col = "brown")
-text(max(draw.label.month) + 0.5, tail(ts.result.jinglin, 1) , 
+
+##############################
+lines(x = draw.label.month,
+      y = ts.result.jinglin, type = "o", col = "brown")
+text(max(draw.label.month) + 0.6, tail(ts.result.jinglin, 1) , 
      "景林稳健（高云程）", col = "brown", cex = 0.7)
 text(draw.label.month,
-     ts.result.jinglin[draw.label.month] + 0.8,
-     paste0(round(ts.result.jinglin[draw.label.month], digits = 2),"%"),
+     ts.result.jinglin + 1.2,
+     paste0(round(ts.result.jinglin, digits = 2),"%"),
      col = "brown", cex = 0.7)
 
-lines(ts.result.hushen300, type = "o", col = "darkgreen", lty = "dashed", lwd = 2)
-text(max(draw.label.month) + 0.3, tail(ts.result.hushen300,1), "沪深300", col = "darkgreen", cex = 0.7)
-text(draw.label.month[1],
-     ts.result.hushen300[draw.label.month[1]] - 0.5,
-     paste0(round(ts.result.hushen300[draw.label.month[1]], digits = 2),"%"),
-     col = "darkgreen", cex = 0.7)
-text(draw.label.month[-1],
-     ts.result.hushen300[draw.label.month[-1]] + 0.8,
-     paste0(round(ts.result.hushen300[draw.label.month[-1]], digits = 2),"%"),
-     col = "darkgreen", cex = 0.7)
 
+###################################
 
-lines(ts.result.zhongzheng500, type = "o", col = "purple", lty = "dashed", lwd = 2)
-text(max(draw.label.month) + 0.3, tail(ts.result.zhongzheng500,1), "中证500", col = "purple", cex = 0.7)
-# text(draw.label.month[-c(2:4)],
-#      ts.result.yun[draw.label.month[-c(2:4)]] - 1.5,
-#      paste0(round(ts.result.yun[draw.label.month[-c(2:4)]], digits = 2),"%"),
-#      col = "brown", cex = 0.7)
+lines(x = draw.label.month,
+      y = ts.result.hushen300, 
+      type = "o", 
+      col = "darkgreen", 
+      lty = "dashed", lwd = 2)
+text(max(draw.label.month) + 0.4, tail(ts.result.hushen300,1), "沪深300", col = "darkgreen", cex = 0.7)
 text(draw.label.month,
-     ts.result.zhongzheng500[draw.label.month] - 0.8,
-     paste0(round(ts.result.zhongzheng500[draw.label.month], digits = 2),"%"),
+     ts.result.hushen300 + 1.2,
+     paste0(round(ts.result.hushen300, digits = 2),"%"),
+     col = "darkgreen", cex = 0.7)
+
+##############################################
+
+lines(x = draw.label.month,
+      y = ts.result.zhongzheng500, 
+      type = "o", 
+      col = "purple", 
+      lty = "dashed", 
+      lwd = 2)
+text(max(draw.label.month) + 0.4, tail(ts.result.zhongzheng500,1), "中证500", col = "purple", cex = 0.7)
+text(draw.label.month,
+     ts.result.zhongzheng500 - 1.2,
+     paste0(round(ts.result.zhongzheng500, digits = 2),"%"),
      col = "purple", cex = 0.7)
 
 
-lines(ts.result.shenzhenghongli, type = "o", col = "deeppink",lty = "dashed", lwd = 2)
-text(max(draw.label.month) + 0.25, tail(ts.result.shenzhenghongli,1), "深证红利", col = "deeppink",cex = 0.7)
-not.show.label <- -c(2,4,6)
-text(draw.label.month[not.show.label],
-     ts.result.shenzhenghongli[draw.label.month[not.show.label]] + 0.8,
-     paste0(round(ts.result.shenzhenghongli[draw.label.month[not.show.label]], digits = 2),"%"),
-     col = "deeppink", cex = 0.7)
-show.label <- -(not.show.label)
-text(draw.label.month[show.label],
-     ts.result.shenzhenghongli[draw.label.month[show.label]] - 1,
-     paste0(round(ts.result.shenzhenghongli[draw.label.month[show.label]], digits = 2),"%"),
-     col = "deeppink",cex = 0.7)
+##################################
+lines(x = draw.label.month,
+      y = ts.result.shenzhenghongli, 
+      type = "o", 
+      col = "deeppink",
+      lty = "dashed", 
+      lwd = 2)
+text(max(draw.label.month) + 0.4, tail(ts.result.shenzhenghongli,1), "深证红利", col = "deeppink",cex = 0.7)
+# not.show.label <- -c(2,4,6)
+# text(draw.label.month[not.show.label],
+#      ts.result.shenzhenghongli[draw.label.month[not.show.label]] + 1.2,
+#      paste0(round(ts.result.shenzhenghongli[draw.label.month[not.show.label]], digits = 2),"%"),
+#      col = "deeppink", cex = 0.7)
+# show.label <- -(not.show.label)
+# text(draw.label.month[show.label],
+#      ts.result.shenzhenghongli[draw.label.month[show.label]] - 1.2,
+#      paste0(round(ts.result.shenzhenghongli[draw.label.month[show.label]], digits = 2),"%"),
+#      col = "deeppink",cex = 0.7)
+
+df <- data.frame(y = seq_along(draw.label.month), 
+                 x = draw.label.month)
+
+df.notshow <- df[!(df$x %in% c(4,5,6)), ] 
+
+text(df.notshow$x,
+     ts.result.shenzhenghongli[df.notshow$y] + 1.2,
+     paste0(round(ts.result.shenzhenghongli[df.notshow$y], digits = 2),"%"),
+     cex = 0.7,
+     col = "deeppink")
+
+df.show <- df[(df$x %in% c(4,5,6)), ] 
+
+text(df.show$x,
+     ts.result.shenzhenghongli[df.show$y] - 1.4,
+     paste0(round(ts.result.shenzhenghongli[df.show$y], digits = 2),"%"),
+     cex = 0.7,
+     col = "deeppink")
+

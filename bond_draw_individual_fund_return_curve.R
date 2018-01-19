@@ -24,7 +24,7 @@ source("input_and_preprocess_data.R")
 ##Usually only numeric_Specied_Month need to be changed
 
 numeric_Specied_Year <- 2017
-numeric_Specied_Month <- 3:11  ## change here every time!
+numeric_Specied_Month <- 3:12  ## change here every time!
 draw.label.month <- numeric_Specied_Month - 1  ## change here every time!
 
 ls_value <- InputData("bondsimujijin",
@@ -124,13 +124,13 @@ lines(draw.label.month,
       ts.result.huaanmeiyuan002393, 
       type = "o", col = "blue")
 
-text(max(draw.label.month) + 0.45, tail(ts.result.huaanmeiyuan002393, 1) + 0.1 , 
+text(max(draw.label.month) + 0.45, tail(ts.result.huaanmeiyuan002393, 1) - 0.2 , 
      "华安美元002393", cex = 0.7, col = "blue")
 
 df <- data.frame(y = seq_along(draw.label.month), 
                  x = draw.label.month)
 
-df.notshow <- df[!(df$x %in% c(4,6,10)), ] 
+df.notshow <- df[!(df$x %in% c(2,4,6,10)), ] 
 # df.show <- df[df$x %in% c(4), ] 
 # browser()
 
@@ -159,22 +159,20 @@ text(max(draw.label.month) + 0.45, tail(ts.result.penghuaquanqiu000290, 1) ,
 df <- data.frame(y = seq_along(draw.label.month), 
                  x = draw.label.month)
 
-df.notshow <- df[!(df$x %in% c(2:5,7,8,9)), ] 
-# df.show <- df[df$x %in% c(4), ] 
-# browser()
+df.notshow <- df[!(df$x %in% c(2:5,7,8,9:11)), ] 
+df.show <- df[df$x %in% c(10:11), ]
 
 text(df.notshow$x,
-     ts.result.penghuaquanqiu000290[df.notshow$y] + 0.25,
+     ts.result.penghuaquanqiu000290[df.notshow$y] + 0.5,
      paste0(round(ts.result.penghuaquanqiu000290[df.notshow$y], digits = 2),"%"),
      cex = 0.7,
      col = "darkorange2")
 
-# text(df.show$x,
-#      ts.result.quantile[df.show$y] - 0.25,
-#      paste0(round(ts.result.quantile[df.show$y], digits = 2),"%"),
-#      cex = 0.7,
-#      col = "red")
-
+text(df.show$x,
+     ts.result.penghuaquanqiu000290[df.show$y] - 0.4,
+     paste0(round(ts.result.penghuaquanqiu000290[df.show$y], digits = 2),"%"),
+     cex = 0.7,
+     col = "darkorange2")
 
 #############
 lines(draw.label.month,
@@ -182,12 +180,23 @@ lines(draw.label.month,
       type = "o")
 
 
-text(max(draw.label.month) + 0.45, tail(ts.result.penghuaxinyong206004, 1) - 0.3, 
+text(max(draw.label.month) + 0.45, tail(ts.result.penghuaxinyong206004, 1), 
      "鹏华信用206004", cex = 0.7, col = "black")
 
-text(draw.label.month,
-     ts.result.penghuaxinyong206004 - 0.25,
-     paste0(round(ts.result.penghuaxinyong206004, digits = 2),"%"),
+# text(draw.label.month,
+#      ts.result.penghuaxinyong206004 - 0.25,
+#      paste0(round(ts.result.penghuaxinyong206004, digits = 2),"%"),
+#      cex = 0.7)
+
+
+df <- data.frame(y = seq_along(draw.label.month), 
+                 x = draw.label.month)
+
+df.show <- df[!(df$x %in% c(11)), ] 
+
+text(df.show$x,
+     ts.result.penghuaxinyong206004[df.show$y] - 0.5,
+     paste0(round(ts.result.penghuaxinyong206004[df.show$y], digits = 2),"%"),
      cex = 0.7)
 
 #############
@@ -203,20 +212,20 @@ df <- data.frame(y = seq_along(draw.label.month),
                  x = draw.label.month)
 
 df.notshow <- df[!(df$x %in% c(6)), ] 
-df.show <- df[df$x %in% c(6), ]
+# df.show <- df[df$x %in% c(6), ]
 # browser()
 
 text(df.notshow$x,
-     ts.result.guotaishuangli020020[df.notshow$y] + 0.25,
+     ts.result.guotaishuangli020020[df.notshow$y] + 0.5,
      paste0(round(ts.result.guotaishuangli020020[df.notshow$y], digits = 2),"%"),
      cex = 0.7,
      col = "purple")
 
-text(df.show$x,
-     ts.result.guotaishuangli020020[df.show$y] - 0.25,
-     paste0(round(ts.result.guotaishuangli020020[df.show$y], digits = 2),"%"),
-     cex = 0.7,
-     col = "purple")
+# text(df.show$x,
+#      ts.result.guotaishuangli020020[df.show$y] - 0.5,
+#      paste0(round(ts.result.guotaishuangli020020[df.show$y], digits = 2),"%"),
+#      cex = 0.7,
+#      col = "purple")
 
 
 
@@ -231,7 +240,7 @@ text(max(draw.label.month) + 0.45, tail(ts.result.zhaoshangzhizao001869, 1) ,
      "招商制造混合\n001869", cex = 0.7, col = "darkgreen")
 
 text(draw.label.month,
-     ts.result.zhaoshangzhizao001869 + 0.25,
+     ts.result.zhaoshangzhizao001869 + 0.5,
      paste0(round(ts.result.zhaoshangzhizao001869, digits = 2),"%"),
      cex = 0.7, col = "darkgreen")
 
@@ -245,7 +254,7 @@ text(max(draw.label.month) + 0.5, tail(ts.result.dongfanghong001564, 1) ,
      "东方红京东大数据\n001564", cex = 0.7, col = "brown")
 
 text(draw.label.month,
-     ts.result.dongfanghong001564 + 0.25,
+     ts.result.dongfanghong001564 + 0.5,
      paste0(round(ts.result.dongfanghong001564, digits = 2),"%"),
      cex = 0.7, col = "brown")
 
@@ -264,16 +273,15 @@ df <- data.frame(y = seq_along(draw.label.month),
 
 df.notshow <- df[!(df$x %in% c(4)), ] 
 df.show <- df[df$x %in% c(4), ] 
-# browser()
 
 text(df.notshow$x,
-     ts.result.quantile[df.notshow$y] + 0.25,
+     ts.result.quantile[df.notshow$y] + 0.5,
      paste0(round(ts.result.quantile[df.notshow$y], digits = 2),"%"),
      cex = 0.7,
      col = "red")
 
 text(df.show$x,
-     ts.result.quantile[df.show$y] - 0.25,
+     ts.result.quantile[df.show$y] - 0.5,
      paste0(round(ts.result.quantile[df.show$y], digits = 2),"%"),
      cex = 0.7,
      col = "red")

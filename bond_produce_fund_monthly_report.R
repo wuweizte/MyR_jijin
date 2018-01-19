@@ -194,7 +194,7 @@ DrawMonthValueCurve <- function(arg.ylim.upper,
         #let colors of density curves in monthly plot to be same as those in
         # moving curve
         month.range <- arg.ls.value[["month_range"]]
-        col.for.lines <- brewer.pal(length(month.range), "Set1") 
+        col.for.lines <- brewer.pal(length(month.range), "Paired") 
         col.seq <- seq_along(month.range)
         names(col.seq) <- month.range
         
@@ -523,7 +523,7 @@ func_modify_text_position <- function(arg_DF_processed, arg.dist.lowthreshold){
         
         dist_to_median_threshold <- 0.24
         
-        LargeStep <- 0.02
+        LargeStep <- 0.01
         MiddleStep <- LargeStep * 3/4
         SmallStep <- LargeStep/4
         #browser()
@@ -744,7 +744,7 @@ source("input_and_preprocess_data.R")
 ##Usually only numeric_Specied_Month need to be changed
 
 numeric_Specied_Year <- 2017
-numeric_Specied_Month <- 3:11  ## change here every time!
+numeric_Specied_Month <- 3:12  ## change here every time!
 
 
 ##The following only affects all curve figures
@@ -777,7 +777,7 @@ ls_value <- DrawAllMonthCurve(arg.ls.value = ls_value,
                               numeric_Specied_Month,
                               arg.x.slope = 0,
                               arg.y.slope = 1,
-                              arg.dist.lowthreshold = 0.4,
+                              arg.dist.lowthreshold = 0.5,
                               arg.ylim.upper = 0.22)
 
 month.number <- length(numeric_Specied_Month)
@@ -804,7 +804,7 @@ DrawBoardIndex("bonddapanzhishu2017.csv",
 ##If there is only one month as input, this part need not to be executed.
 
 # numeric_Specied_Month_for_Moving_Curve <- numeric_Specied_Month
-numeric_Specied_Month_for_Moving_Curve <- c(3,7,11)
+numeric_Specied_Month_for_Moving_Curve <- c(3,7,12)
 
 DrawMonthValueMovingCurve(ls_value, numeric_Specied_Year,
                           numeric_Specied_Month_for_Moving_Curve,

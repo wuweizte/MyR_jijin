@@ -213,7 +213,9 @@ DrawMonthValueCurve <- function(arg.ylim.upper,
         #let colors of density curves in monthly plot to be same as those in
         # moving curve
         month.range <- arg.ls.value[["month_range"]]
-        col.for.lines <- brewer.pal(length(month.range), "Set1") 
+        # browser()
+        # col.for.lines <- brewer.pal(length(month.range), "Set1") 
+        col.for.lines <- brewer.pal(length(month.range), "Paired")
         col.seq <- seq_along(month.range)
         names(col.seq) <- month.range
         
@@ -680,7 +682,11 @@ DrawBoardIndex <- function(filename, boardindexname, titlecontent,legendx,
         location_bar_x = bar_x
         location_bar_y = bar_y + sign(bar_y) * 3
         location_bar_y[location_bar_y == 0] <- 3
-        #browser()
+        
+        if(ylim.upper > 70){
+        
+                location_bar_y[location_bar_y > 0] <- location_bar_y[location_bar_y > 0] + 2        
+        }
         
         text(location_bar_x, location_bar_y, paste(bar_y,"%",sep = ""),
              col = "red", font = 3,cex = 0.9)
@@ -758,7 +764,7 @@ DrawMonthValueMovingCurve <- function(ls_value_input, arg.year = 2016,
 ##Usually only numeric_Specied_Month need to be changed
 
 numeric_Specied_Year <- 2017
-numeric_Specied_Month <- 3:11  ## change here every time!
+numeric_Specied_Month <- 3:13  ## change here every time!
 
 
 ##The following only affects all curve figures
@@ -820,7 +826,7 @@ DrawBoardIndex("stockdapanzhishu2017.csv",
 ##If there is only one month as input, this part need not to be executed.
 
 # numeric_Specied_Month_for_Moving_Curve <- numeric_Specied_Month
-numeric_Specied_Month_for_Moving_Curve <- c(3,7,11)
+numeric_Specied_Month_for_Moving_Curve <- c(3,7,12)
 
 
 length_Specied_Month <- length(numeric_Specied_Month_for_Moving_Curve)
@@ -842,12 +848,12 @@ if(length(numeric_Specied_Month) > 2){
                                c("高端装备000097","医药指数399913",
                                  "消费指数399912" ),
                                "机构推荐配置涨幅(从2017年初开始)",
-                               6, 75,
+                               6, 95,
                                "springgreen4",
                                monthnumber = month.number,
                                board.number = 3,
                                ylim.lower = -20,
-                               ylim.upper = 70)
+                               ylim.upper = 90)
         }
 }
 
