@@ -21,9 +21,9 @@ DesignPlotLayout <- function(){
         #   没有输出，直接就是执行layout函数影响后续绘图
         
 
-        plot.layout.matrix <- matrix(c(1, 1,1, 5, 5,5,5, 
-                                       2, 2,2, 4, 4,4,4,
-                                       3, 3,3, 6, 6,7,7), 
+        plot.layout.matrix <- matrix(c(1, 1,1, 1,5, 5,5,5, 
+                                       2, 2,2, 2,4, 4,4,4,
+                                       3, 3,3, 3,6, 6,7,7), 
                                      nr = 3,
                                      byrow = TRUE)
         
@@ -40,7 +40,8 @@ DrawAllMonthCurve <- function(arg.ls.value,
                               arg.x.slope, 
                               arg.y.slope, 
                               arg.dist.lowthreshold,
-                              arg.ylim.upper = 0.04){
+                              arg.ylim.upper,
+                              arg.draw.rug.selection){
 
         # 3. Draw monthly return curve for the specified month
         # 3-1 Execution Control Funciton
@@ -60,11 +61,12 @@ DrawAllMonthCurve <- function(arg.ls.value,
         #   arg.ls.value ： 返回已经添加了密度曲线上标识点的信息数据框后的数据列表
         
         ##let user to determine whether rug lines should be drawn.
-        cat("\n\nIf you want to draw rug lines in x coordinate axis,please input yes.")
-        cat("\nNow wait for your input: ")
-        
-        draw.rug.selection <- readline("?")
+        # cat("\n\nIf you want to draw rug lines in x coordinate axis,please input yes.")
+        # cat("\nNow wait for your input: ")
+        # 
+        # draw.rug.selection <- readline("?")
 
+        draw.rug.selection <- arg.draw.rug.selection
         rug.flag = 0
         if (substr(draw.rug.selection, 1, 3) == "yes"){
                 rug.flag = 1
@@ -145,11 +147,13 @@ DrawMonthValueCurve <- function(arg.ylim.upper,
         plot(month.return, 
              type = "n", 
              ylim = c(0, arg.ylim.upper),
-             xlim = c(min.return , max.return + 10), 
+             xlim = c(min.return + 70 , max.return + 10), 
              axes = FALSE,
              main = plot.main.name,
              xlab = '年收益率(%)',
-             ylab = '分布密度')
+             ylab = '分布密度',
+             cex.main = 1.2,
+             cex.lab = 1.1)
         
         x.axis.grid.points <- seq(from = round(min.return,digits = -1) - 10,
                               to = round(max.return,digits = -1) + 10, 
@@ -161,7 +165,7 @@ DrawMonthValueCurve <- function(arg.ylim.upper,
         #draw grid lines
         y.axis.grid.points <- seq(from = 0, 
                              to = arg.ylim.upper, 
-                             by = 0.05)
+                             by = 0.1)
         
         abline(h = y.axis.grid.points, 
                v = x.axis.grid.points, 
@@ -194,7 +198,9 @@ DrawMonthValueCurve <- function(arg.ylim.upper,
         #let colors of density curves in monthly plot to be same as those in
         # moving curve
         month.range <- arg.ls.value[["month_range"]]
-        col.for.lines <- brewer.pal(length(month.range), "Paired") 
+        # col.for.lines <- brewer.pal(length(month.range), "Paired") 
+
+        col.for.lines <- brewer.pal(length(month.range), "Set1") 
         col.seq <- seq_along(month.range)
         names(col.seq) <- month.range
         
@@ -324,10 +330,10 @@ func_process_line_text <- function(arg_DF_lineText){
         DF_result[DF_result$linename == "huaanmeiyuan002393","lty"] <- 6
         
         ##textcex
-        DF_result$textcex <- 1
-        DF_result[DF_result$linename == "huaanmeiyuan002393","textcex"] <- 0.9
-        DF_result[DF_result$linename == "guotaishuangli020020","textcex"] <- 0.9
-        DF_result[DF_result$linename == "zhaoshangzhizao001869","textcex"] <- 0.9
+        DF_result$textcex <- 1.2
+        DF_result[DF_result$linename == "huaanmeiyuan002393","textcex"] <- 1.1
+        DF_result[DF_result$linename == "guotaishuangli020020","textcex"] <- 1.1
+        DF_result[DF_result$linename == "zhaoshangzhizao001869","textcex"] <- 1.1
 
         ##textpos
         DF_result$textpos <- 4
@@ -523,7 +529,7 @@ func_modify_text_position <- function(arg_DF_processed, arg.dist.lowthreshold){
         
         dist_to_median_threshold <- 0.24
         
-        LargeStep <- 0.01
+        LargeStep <- 0.03
         MiddleStep <- LargeStep * 3/4
         SmallStep <- LargeStep/4
         #browser()
@@ -599,13 +605,18 @@ func_draw_line_text <- function(arg_DF_processed){
                 
                 #对于中值，线与文字不再公用x坐标，文字稍微左移               
                 if(rowlinename == "median"){
-                        text(linex - 1.5,texty,labels = rowlabel,pos = rowpos, 
-                             font = 3, 
+                        text(linex - 6,
+                             texty,
+                             labels = rowlabel,
+                             pos = rowpos, 
+                             # font = 3, 
                              cex = rowcex,
                              col = rowcol)  
                 }else{
-                        text(linex,texty,labels = rowlabel,pos = rowpos, 
-                             font = 3, 
+                        text(linex,texty,
+                             labels = rowlabel,
+                             pos = rowpos, 
+                             # font = 3, 
                              cex = rowcex,
                              col = rowcol)  
                 }
@@ -617,52 +628,106 @@ func_draw_line_text <- function(arg_DF_processed){
 #####################################################
 ## 4.板块指数描绘函数：用于描绘大盘指数以及赵基金持仓板块
 
+# DrawBoardIndex <- function(filename, boardindexname, titlecontent,legendx,
+#                            legendy,barcol, monthnumber, board.number,
+#                            ylim.lower, ylim.upper, arg.ylabel.factor){
+#   
+#   
+#   B <- read.csv(file = filename, header = TRUE)
+#   
+#   row.number <- nrow(B)
+#   
+#   ###取最近几个月数据，最多 monthnumber 月
+#   if(row.number >= board.number * monthnumber){
+#           B <- B[c((row.number - board.number * monthnumber + 1):row.number),]  
+#   }
+# 
+#   
+#   Board_Index_array <- t(array(c(B[,5]), 
+#                                dim = c(board.number, monthnumber)))
+#   #browser()
+#   levels(B$date)
+#   dimnames(Board_Index_array) <- list(unique(B$date), boardindexname)
+#                                       
+#   
+#   bar_x <- barplot(Board_Index_array, beside = TRUE,
+#                    ylim = c(ylim.lower, ylim.upper), 
+#                    main = titlecontent, 
+#                    ylab = "涨幅(%)", 
+#                    density = seq(from = 20, to = 20 * monthnumber, by = 20),  
+#                    las = 1,col = barcol,
+#                    legend.text = attr(Board_Index_array, "dimnames")[[1]],
+#                    args.legend = list(x = legendx, 
+#                                       y = legendy, 
+#                                       bty = "n",
+#                                       ncol = ((monthnumber - 1) %/% 3) + 1,  ##defind column counts of legend
+#                                       text.width = strwidth("10000")))
+#   
+#   
+#   bar_y <- as.numeric(Board_Index_array)
+#   
+#   location_bar_x = bar_x
+#   location_bar_y = bar_y + sign(bar_y) * arg.ylabel.factor
+#   location_bar_y[location_bar_y == 0] <- 3
+#   #browser()
+#   
+#   text(location_bar_x, location_bar_y, paste(bar_y,"%",sep = ""),
+#        col = "red", font = 3,cex = 0.9)
+# }
+
 DrawBoardIndex <- function(filename, boardindexname, titlecontent,legendx,
                            legendy,barcol, monthnumber, board.number,
-                           ylim.lower, ylim.upper, arg.ylabel.factor){
-  
-  
+                           ylim.lower, ylim.upper, arg.ylabel.factor,
+                           arg.ylabel){
+
+
   B <- read.csv(file = filename, header = TRUE)
-  
+
   row.number <- nrow(B)
-  
+
   ###取最近几个月数据，最多 monthnumber 月
   if(row.number >= board.number * monthnumber){
-          B <- B[c((row.number - board.number * monthnumber + 1):row.number),]  
+          B <- B[c((row.number - board.number * monthnumber + 1):row.number),]
   }
 
-  
-  Board_Index_array <- t(array(c(B[,5]), 
+
+  Board_Index_array <- t(array(c(B[,4]),
                                dim = c(board.number, monthnumber)))
   #browser()
   levels(B$date)
   dimnames(Board_Index_array) <- list(unique(B$date), boardindexname)
-                                      
-  
+
+
   bar_x <- barplot(Board_Index_array, beside = TRUE,
-                   ylim = c(ylim.lower, ylim.upper), 
-                   main = titlecontent, 
-                   ylab = "涨幅(%)", 
-                   density = seq(from = 20, to = 20 * monthnumber, by = 20),  
+                   ylim = c(ylim.lower, ylim.upper),
+                   main = titlecontent,
+                   ylab = arg.ylabel,
+                   density = seq(from = 20, to = 20 * monthnumber, by = 20),
                    las = 1,col = barcol,
-                   legend.text = attr(Board_Index_array, "dimnames")[[1]],
-                   args.legend = list(x = legendx, 
-                                      y = legendy, 
+                   legend.text = substr(attr(Board_Index_array, "dimnames")[[1]],1,6),
+                   args.legend = list(x = legendx,
+                                      y = legendy,
                                       bty = "n",
+                                      cex = 1.1,
                                       ncol = ((monthnumber - 1) %/% 3) + 1,  ##defind column counts of legend
-                                      text.width = strwidth("10000")))
-  
-  
+                                      text.width = strwidth("1000000")))
+
+
   bar_y <- as.numeric(Board_Index_array)
-  
-  location_bar_x = bar_x
-  location_bar_y = bar_y + sign(bar_y) * arg.ylabel.factor
-  location_bar_y[location_bar_y == 0] <- 3
+
+  # location_bar_x = bar_x
+  # location_bar_y = bar_y + sign(bar_y) * arg.ylabel.factor
+  # location_bar_y[location_bar_y == 0] <- 3
   #browser()
+
+  # text(location_bar_x, location_bar_y, bar_y, #paste(bar_y,"%",sep = ""),
+  #      col = "red", font = 3,cex = 0.9)
   
-  text(location_bar_x, location_bar_y, paste(bar_y,"%",sep = ""),
-       col = "red", font = 3,cex = 0.9)
+  text(bar_x, bar_y + 0.5, bar_y, #paste(bar_y,"%",sep = ""),
+       col = "red", font = 3,cex = 1.2)
+  
 }
+
 
 ## 5.月收益率曲线移动轨迹图
 
@@ -691,7 +756,8 @@ DrawMonthValueMovingCurve <- function(ls_value_input, arg.year = 2016,
   plot(month_return, type = "n", ylim = c(0, numeric_input_ylim_upper),
        xlim = c(numeric_Specied_xlim_down, numeric_Specied_xlim_upper), 
        axes = FALSE,main = '债券策略型私募基金收益分布密度曲线移动轨迹图',
-       xlab = '年收益率(%)',ylab = '分布密度')
+       xlab = '年收益率(%)',ylab = '分布密度',
+       cex.main = 1.2, cex.lab = 1.1)
   
   x_break_number <- seq(from = numeric_Specied_xlim_down, 
                         to = numeric_Specied_xlim_upper, by = 5)
@@ -706,7 +772,7 @@ DrawMonthValueMovingCurve <- function(ls_value_input, arg.year = 2016,
   
   index_y_grid <- seq(from = 0, 
                       to = numeric_input_ylim_upper, 
-                      by = 0.05)
+                      by = 0.1)
   
   abline(h = index_y_grid, v = index_x_grid, col = "white", 
          lty = "solid",lwd = par("lwd"))
@@ -731,20 +797,23 @@ DrawMonthValueMovingCurve <- function(ls_value_input, arg.year = 2016,
   lwd_legend <- c(rep(1,(lid - 1)), 2)
   legend("topleft", col = col_for_lines,lty = 1, lwd = lwd_legend,
          legend = Text_legend,text.width = strwidth("100000"),
-         bty = "n")           
+         bty = "n", cex = 1.2)           
 }
+
+
+
 
 ######Execution Part
 
 setwd("d:/MyR/jijin")
 source("input_and_preprocess_data.R")
-
+source("bond_DrawUCCountryBond.R")
 
 ##Specify the year and month range to draw plots
 ##Usually only numeric_Specied_Month need to be changed
 
-numeric_Specied_Year <- 2017
-numeric_Specied_Month <- 3:12  ## change here every time!
+numeric_Specied_Year <- 2018
+numeric_Specied_Month <- 2:5  ## change here every time!
 
 
 ##The following only affects all curve figures
@@ -777,8 +846,9 @@ ls_value <- DrawAllMonthCurve(arg.ls.value = ls_value,
                               numeric_Specied_Month,
                               arg.x.slope = 0,
                               arg.y.slope = 1,
-                              arg.dist.lowthreshold = 0.5,
-                              arg.ylim.upper = 0.22)
+                              arg.dist.lowthreshold = 0.8,
+                              arg.ylim.upper = 0.55,
+                              arg.draw.rug.selection = "no")
 
 month.number <- length(numeric_Specied_Month)
 if(month.number > 6){
@@ -788,52 +858,60 @@ if(month.number > 6){
 
 #browser()
 #大盘指数: Manual action to the coordinates of legend may be needed.
-DrawBoardIndex("bonddapanzhishu2017.csv",
-               c("中证国债","中证金融债","中证企业债"),
-               "板块指数涨幅(从2017年初开始)",
-               5, 7,
-               "steelblue",
-               monthnumber = month.number,
-               board.number = 3,
-               ylim.lower = -3,
-               ylim.upper = 6,
-               arg.ylabel.factor = 0.5)
+# DrawBoardIndex("bonddapanzhishu2018.csv",
+#                c("中证国债","中证金融债","中证企业债"),
+#                "板块指数涨幅(从2018年初开始)",
+#                2.5, 7,
+#                "steelblue",
+#                monthnumber = month.number,
+#                board.number = 3,
+#                ylim.lower = -3,
+#                ylim.upper = 6,
+#                arg.ylabel.factor = 0.5)
+
+DrawUCCountryBond("D:\\MyR\\jijin\\bondUSACHINA10year.csv",
+                  arg.month.number = month.number)
 
 
 #月收益率曲线移动轨迹图, The input months length can be larger than 3
 ##If there is only one month as input, this part need not to be executed.
 
 # numeric_Specied_Month_for_Moving_Curve <- numeric_Specied_Month
-numeric_Specied_Month_for_Moving_Curve <- c(3,7,12)
+numeric_Specied_Month_for_Moving_Curve <- c(2:3,5)
 
 DrawMonthValueMovingCurve(ls_value, numeric_Specied_Year,
                           numeric_Specied_Month_for_Moving_Curve,
-                          numeric_input_ylim_upper = 0.54,
+                          numeric_input_ylim_upper = 0.7,
                           numeric_Specied_xlim_down,
                           numeric_Specied_xlim_upper)
 
 
 
-DrawBoardIndex("bondshibor2017.csv",
-               c("SHIBOR 3月" ),
-               "SHIBOR 涨幅(从2017年初开始)",
-               4, 90,
+DrawBoardIndex("bondshibor2018.csv",
+               c("" ),
+               "SHIBOR 3月(%)",
+               3.5, 8,
                "springgreen4",
                monthnumber = month.number,
                board.number = 1,
-               ylim.lower = -5,
-               ylim.upper = 80,
-               arg.ylabel.factor = 4)
+               ylim.lower = 0,
+               ylim.upper = 8,
+               arg.ylabel.factor = 4,
+               arg.ylabel = "")
 
 ##################
 
-DrawBoardIndex("bondhuilv2017.csv",
-               c("美元兑人民币(CFETS)" ),
-               "汇率涨幅(从2017年初开始)",
-               4, 9,
+DrawBoardIndex("bondhuilv2018.csv",
+               c("" ),
+               "美元兑人民币(CFETS)",
+               3.5, 10,
                "springgreen4",
                monthnumber = month.number,
                board.number = 1,
-               ylim.lower = -8,
-               ylim.upper = 8,
-               arg.ylabel.factor = 0.5)
+               ylim.lower = 0,
+               ylim.upper = 10,
+               arg.ylabel.factor = 0.5,
+               arg.ylabel = "")
+
+dev.copy(png, file = "bond_produce_fund_monthly_report.png", units= "px", width=1000, height=600)
+dev.off()
