@@ -2,7 +2,7 @@
 # modified on 2017-4-23
 
 #### File Descriptiong Part
-# 代码目的：用于细化分析基金收益率信息
+# 4zBkD?5D#:SCSZO8;/7VNv;y=pJURfBJPEO"
 
 ###Clear environment
 rm(list = ls())
@@ -37,24 +37,24 @@ ls_value <- InputData("simujijin",
 zhishu <- read.csv(file = "stockzhongyaozhishu2018.csv", header = TRUE)
 
 ts.result.chi <- GetIndividualFundReturn(numeric_Specied_Year,
-                                         numeric_Specied_Month,
-                                         "赤子之心价值",
-                                         ls_value, 0)
+                                  numeric_Specied_Month,
+                                  "3`WSV.PD<[V5",
+                                  ls_value, 0)
 
 
 ts.result.jinglin <- GetIndividualFundReturn(numeric_Specied_Year,
-                                             numeric_Specied_Month,
-                                             "景林稳健",
-                                             ls_value, 0)
+                                       numeric_Specied_Month,
+                                       ">0AVNH=!",
+                                       ls_value, 0)
 
 ts.result.zhongzheng500 <- zhishu[(zhishu$zhishu == "zhongzheng500" & 
-                                           month(as.Date(zhishu$date)) %in% draw.label.month),  "zhangfu"]
+                                     month(as.Date(zhishu$date)) %in% draw.label.month),  "zhangfu"]
 
 ts.result.hushen300 <- zhishu[(zhishu$zhishu == "hushen300" & 
-                                       month(as.Date(zhishu$date)) %in% draw.label.month),  "zhangfu"]
+                                 month(as.Date(zhishu$date)) %in% draw.label.month),  "zhangfu"]
 
 ts.result.shenzhenghongli <- zhishu[(zhishu$zhishu == "shenzhenghongli" & 
-                                             month(as.Date(zhishu$date)) %in% draw.label.month),  "zhangfu"]
+                                       month(as.Date(zhishu$date)) %in% draw.label.month),  "zhangfu"]
 
 ylim.upper <- max(c(ts.result.chi, 
                     ts.result.jinglin,
@@ -66,7 +66,7 @@ ylim.lower <- min(c(ts.result.chi,
                     ts.result.zhongzheng500,
                     ts.result.shenzhenghongli)) - 2
 
-xlim.upper <- max(draw.label.month) + 0.8
+xlim.upper <- max(draw.label.month) + 0.5
 
 xlim.lower <- min(draw.label.month)
 
@@ -81,7 +81,7 @@ plot(ts.result.chi, type = "n",
      ylim = c(ylim.lower, ylim.upper),
      xlim = c(xlim.lower, xlim.upper),
      axes = FALSE,
-     xlab = "月份", ylab = "2018年收益率", main = "标杆指数的收益率月度曲线(2018年初以来)")
+     xlab = "TB7]", ylab = "2018DjJURfBJ", main = "1j8KV8J}5DJURfBJTB6HGzO_(2018Dj3uRT@4)")
 
 box()
 
@@ -107,8 +107,8 @@ lines(x = draw.label.month,
       y = ts.result.chi, 
       type = "o", 
       col = "blue")
-text(max(draw.label.month) + 0.43, tail(ts.result.chi, 1) , 
-     "赤子之心价值（赵丹阳）", cex = 0.9, col = "blue")
+text(max(draw.label.month) + 0.33, tail(ts.result.chi, 1) , 
+     "3`WSV.PD<[V5#(UT5$Qt#)", cex = 0.9, col = "blue")
 
 df <- data.frame(y = seq_along(draw.label.month), 
                  x = draw.label.month)
@@ -134,9 +134,9 @@ text(df.notshow$x,
 ##############################
 lines(x = draw.label.month,
       y = ts.result.jinglin, type = "o", col = "brown")
-text(max(draw.label.month) + 0.38, 
+text(max(draw.label.month) + 0.28, 
      tail(ts.result.jinglin, 1) + 0.05 , 
-     "景林稳健（高云程）", col = "brown", cex = 0.9)
+     ">0AVNH=!#(8_TF3L#)", col = "brown", cex = 0.9)
 # text(draw.label.month,
 #      ts.result.jinglin + 0.8,
 #      paste0(round(ts.result.jinglin, digits = 2),"%"),
@@ -162,9 +162,9 @@ lines(x = draw.label.month,
       type = "o", 
       col = "darkgreen", 
       lty = "dashed", lwd = 2)
-text(max(draw.label.month) + 0.23, 
-     tail(ts.result.hushen300,1) - 0.4, 
-     "沪深300", 
+text(max(draw.label.month) + 0.18, 
+     tail(ts.result.hushen300,1) - 0.1, 
+     ";&In300", 
      col = "darkgreen", 
      cex = 0.9)
 
@@ -177,7 +177,7 @@ text(max(draw.label.month) + 0.23,
 df <- data.frame(y = seq_along(draw.label.month), 
                  x = draw.label.month)
 
-df.notshow <- df[!(df$x %in% c(1:2,4,5)), ] 
+df.notshow <- df[!(df$x %in% c(1:2,4)), ] 
 
 text(df.notshow$x,
      ts.result.hushen300[df.notshow$y] + 0.5,
@@ -203,8 +203,8 @@ lines(x = draw.label.month,
       col = "purple", 
       lty = "dashed", 
       lwd = 2)
-text(max(draw.label.month) + 0.23, 
-     tail(ts.result.zhongzheng500,1), "中证500", col = "purple", cex = 0.9)
+text(max(draw.label.month) + 0.18, 
+     tail(ts.result.zhongzheng500,1), "VPV$500", col = "purple", cex = 0.9)
 # text(draw.label.month,
 #      ts.result.zhongzheng500 - 1.2,
 #      paste0(round(ts.result.zhongzheng500, digits = 2),"%"),
@@ -239,8 +239,8 @@ lines(x = draw.label.month,
       col = "deeppink",
       lty = "dashed", 
       lwd = 2)
-text(max(draw.label.month) + 0.23, 
-     tail(ts.result.shenzhenghongli,1) + 0.2, "深证红利", col = "deeppink",cex = 0.9)
+text(max(draw.label.month) + 0.19, 
+     tail(ts.result.shenzhenghongli,1), "InV$:l@{", col = "deeppink",cex = 0.9)
 
 df <- data.frame(y = seq_along(draw.label.month), 
                  x = draw.label.month)

@@ -34,20 +34,20 @@ DrawUCCountryBond <- function(filename, arg.month.number){
              cex.axis = 1.4)
         
         text(1:arg.month.number,
-             ch.bond + 0.4,
+             ch.bond + 0.35,
              round(ch.bond,digits = 2),
              col = "blue",cex = 1.2)
         
         lines(us.bond,col="red",type = "o")
         text(1:arg.month.number,
-             us.bond + 0.4,
+             us.bond + 0.35,
              us.bond,
              col = "red",cex = 1.2)
         
         
         lines(bond.diff,col="purple",type = "o", lty = 2)
         text(1:arg.month.number,
-             bond.diff + 0.4,
+             bond.diff + 0.35,
              bond.diff,
              col = "purple",cex = 1.2)
         

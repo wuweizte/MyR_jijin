@@ -24,7 +24,7 @@ source("input_and_preprocess_data.R")
 ##Usually only numeric_Specied_Month need to be changed
 
 numeric_Specied_Year <- 2018
-numeric_Specied_Month <- 2:5  ## change here every time!
+numeric_Specied_Month <- 2:6  ## change here every time!
 draw.label.month <- numeric_Specied_Month - 1  ## change here every time!
 
 ls_value <- InputData("bondsimujijin",
@@ -61,7 +61,7 @@ ylim.lower <- min(c(ts.result.huaanmeiyuan002393,
                     ts.result.guotaishuangli020020,
                     ts.result.zhaoshangzhizao001869,
                     ts.result.hushen300)) - 2
-xlim.upper <- max(draw.label.month) + 0.3
+xlim.upper <- max(draw.label.month) + 0.6
 
 xlim.lower <- min(draw.label.month)
 
@@ -101,7 +101,7 @@ lines(draw.label.month,
       ts.result.huaanmeiyuan002393, 
       type = "o", col = "blue")
 
-text(max(draw.label.month) + 0.24, tail(ts.result.huaanmeiyuan002393, 1) + 0.05 , 
+text(max(draw.label.month) + 0.36, tail(ts.result.huaanmeiyuan002393, 1) , 
      "华安美元002393", cex = 0.9, col = "blue")
 
 df <- data.frame(y = seq_along(draw.label.month), 
@@ -132,7 +132,7 @@ lines(draw.label.month,
       ts.result.guotaishuangli020020, 
       type = "o", col = "purple")
 
-text(max(draw.label.month) + 0.24, tail(ts.result.guotaishuangli020020, 1) + 0.1 , 
+text(max(draw.label.month) + 0.36, tail(ts.result.guotaishuangli020020, 1) + 0.1 , 
      "国泰双利020020", cex = 0.9, col = "purple")
 
 
@@ -165,7 +165,7 @@ lines(draw.label.month,
       ts.result.zhaoshangzhizao001869, 
       type = "o", col = "darkgreen")
 
-text(max(draw.label.month) + 0.24, tail(ts.result.zhaoshangzhizao001869, 1) , 
+text(max(draw.label.month) + 0.32, tail(ts.result.zhaoshangzhizao001869, 1) , 
      "招商制造混合\n001869", cex = 0.9, col = "darkgreen")
 
 text(draw.label.month,
@@ -182,7 +182,7 @@ lines(draw.label.month,
       lty = "dashed", 
       lwd = 2)
 
-text(max(draw.label.month) + 0.24, tail(ts.result.hushen300, 1) , 
+text(max(draw.label.month) + 0.32, tail(ts.result.hushen300, 1) , 
      "沪深300指数", cex = 0.9, col = "darkorange")
 
 # text(draw.label.month,
@@ -193,7 +193,7 @@ text(max(draw.label.month) + 0.24, tail(ts.result.hushen300, 1) ,
 df <- data.frame(y = seq_along(draw.label.month), 
                  x = draw.label.month)
 
-df.notshow <- df#[!(df$x %in% c(2)), ] 
+df.notshow <- df[!(df$x %in% c(5)), ] 
 
 text(df.notshow$x,
      ts.result.hushen300[df.notshow$y] - 0.35,
@@ -201,13 +201,13 @@ text(df.notshow$x,
      cex = 0.9,
      col = "darkorange")
 
-# df.show <- df[(df$x %in% c(2)), ] 
-# 
-# text(df.show$x,
-#      ts.result.hushen300[df.show$y] + 0.25,
-#      paste0(round(ts.result.hushen300[df.show$y], digits = 2),"%"),
-#      cex = 0.9,
-#      col = "darkorange")
+df.show <- df[(df$x %in% c(5)), ]
+
+text(df.show$x,
+     ts.result.hushen300[df.show$y] + 0.25,
+     paste0(round(ts.result.hushen300[df.show$y], digits = 2),"%"),
+     cex = 0.9,
+     col = "darkorange")
 
 ########################
 
@@ -217,7 +217,7 @@ lines(draw.label.month,
       col = "red", 
       lty = "dashed", 
       lwd = 2)
-text(max(draw.label.month) + 0.23, 
+text(max(draw.label.month) + 0.3, 
      tail(ts.result.zhongzhengquanzhai,1), 
      "中证全债指数", col = "red", cex = 0.9)
 

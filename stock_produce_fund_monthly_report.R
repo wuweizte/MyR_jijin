@@ -169,7 +169,7 @@ DrawMonthValueCurve <- function(arg.ylim.upper,
         plot(month.return, 
              type = "n", 
              ylim = c(0, arg.ylim.upper),
-             xlim = c(min.return + 40, max.return + 10), 
+             xlim = c(min.return + 40, max.return + 20), 
              axes = FALSE,
              main = plot.main.name,
              xlab = '年收益率(%)',
@@ -683,18 +683,18 @@ DrawBoardIndex <- function(filename, boardindexname, titlecontent,legendx,
                                             y = legendy, 
                                             bty = "n",
                                             cex = 1.2,
-                                            ncol = ((monthnumber - 1) %/% 3) + 1,  ##defind column counts of legend
+                                            ncol = ((monthnumber - 1) %/% 2) + 1,  ##defind column counts of legend
                                             text.width = strwidth("10000000")))
         
         
         bar_y <- as.numeric(Board_Index_array)
         
         location_bar_x = bar_x
-        location_bar_y = bar_y + sign(bar_y) * 3
-        location_bar_y[location_bar_y == 0] <- 3
+        location_bar_y = bar_y + sign(bar_y) * 5
+        location_bar_y[location_bar_y == 0] <- 5
         
         if(ylim.upper > 70){
-        
+                
                 location_bar_y[location_bar_y > 0] <- location_bar_y[location_bar_y > 0] + 2        
         }
         
@@ -778,7 +778,7 @@ DrawMonthValueMovingCurve <- function(ls_value_input, arg.year = 2016,
 ##Usually only numeric_Specied_Month need to be changed
 
 numeric_Specied_Year <- 2018
-numeric_Specied_Month <- 2:5  ## change here every time!
+numeric_Specied_Month <- 2:6  ## change here every time!
 
 
 ##The following only affects all curve figures
@@ -827,12 +827,12 @@ if(month.number > 6){
 DrawBoardIndex("stockdapanzhishu2018.csv",
                c("上证综指999999","创业板399006","港股通精选100指数CES100"),
                "参考指数涨幅(从2018年初开始)",
-               4.5, 35,
+               8, 50,
                "steelblue",
                monthnumber = month.number,
                board.number = 3,
                ylim.lower = -20,
-               ylim.upper = 35)
+               ylim.upper = 45)
 # plot(1,1)
 
 
@@ -841,7 +841,7 @@ DrawBoardIndex("stockdapanzhishu2018.csv",
 ##If there is only one month as input, this part need not to be executed.
 
 # numeric_Specied_Month_for_Moving_Curve <- numeric_Specied_Month
-numeric_Specied_Month_for_Moving_Curve <- c(2,3,5)
+numeric_Specied_Month_for_Moving_Curve <- c(2,4,6)
 
 
 length_Specied_Month <- length(numeric_Specied_Month_for_Moving_Curve)
@@ -863,12 +863,12 @@ if(length(numeric_Specied_Month) > 2){
                                c("高端装备000097","医药指数399913",
                                  "消费指数399912" ),
                                "机构推荐配置涨幅(从2018年初开始)",
-                               4.5, 35,
+                               8, 50,
                                "springgreen4",
                                monthnumber = month.number,
                                board.number = 3,
-                               ylim.lower = -20,
-                               ylim.upper = 35)
+                               ylim.lower = -30,
+                               ylim.upper = 45)
         }
 }
 
